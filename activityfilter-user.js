@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Activity Filter
+// @name        Anime Activity Filter
 // @namespace   https://github.com/hachiman-hikigaya
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
@@ -35,6 +35,10 @@ var styles = `
     -webkit-flex-grow:1;
         -ms-flex-positive:1;
             flex-grow:1
+    }
+    .btn-active {
+    background: rgb(40, 56, 77);
+    color: rgb(159, 173, 189)
     }
     .searchinput {
     -webkit-transition:0.25s;
@@ -108,9 +112,6 @@ var styles = `
     }
     .animedata {
     cursor: pointer;
-    width: -webkit-fit-content;
-    width: -moz-fit-content;
-    width: fit-content;
     display: -ms-grid;
     display: grid;
     -ms-grid-columns: 20fr 1fr;
@@ -191,23 +192,19 @@ interval = null;
 //create("element", {class:"", id:""},'text');
 function create(tag, attrs, html) {
     if (!tag) throw new SyntaxError("'tag' not defined"); // In case you forget
-
     var ele = document.createElement(tag),
         attrName, styleName;
-    if (attrs)
-        for (attrName in attrs) {
-            if (attrName === "style")
-                for (styleName in attrs.style) {
-                    ele.style[styleName] = attrs.style[styleName];
-                }
-            else if (attrs[attrName])
-                ele.setAttribute(attrName, attrs[attrName]);
-        }
-    if (html)
-        ele.innerHTML = html;
-    return ele;
+    if (attrs) for (attrName in attrs) {
+      if (attrName === "style") for (styleName in attrs.style) {
+        ele.style[styleName] = attrs.style[styleName];
+      }
+      else if (attrs[attrName])
+        ele.setAttribute(attrName, attrs[attrName]);
+    }
+  if (html)
+    ele.innerHTML = html;
+  return ele;
 }
-
 //Set Function
 //set(element,{style:{..}});
 //set(element, {class:"", id:"",style:{..}},'text');
@@ -215,248 +212,73 @@ function set(tag, attrs, html) {
     if (!tag) throw new SyntaxError("'tag' not defined"); // In case you forget
     var ele = tag,
         attrName, styleName;
-    if (attrs)
-        for (attrName in attrs) {
-            if (attrName === "style")
-                for (styleName in attrs.style) {
-                    ele.style[styleName] = attrs.style[styleName];
-                }
-            else if (attrs[attrName])
-                ele.setAttribute(attrName, attrs[attrName]);
-        }
-    if (html)
-        ele.innerHTML = html;
-    return ele;
-}
-//Create Buttons
-var button = create("li", {
-    class: "el-dropdown-menu__item mainbtn",
-    id: "Watching"
-}, 'Anime Filter');
-button.onclick = () => {
-    createDiv()
-};
-
-var button2 = create("button", {
-    class: "mainbtns",
-    id: "closebtn"
-}, 'Close');
-button2.onclick = () => {
-    closeDiv()
-};
-
-var button3 = create("button", {
-    class: "mainbtns",
-    id: "filterallbtn"
-}, 'Filter All');
-button3.onclick = () => {
-    clearInterval(interval);
-    filterAll();
-};
-
-var button4 = create("button", {
-    class: "mainbtns",
-    id: "stopbtn",
-    style: {
-        visibility: "hidden",
-        marginTop: "0"
+    if (attrs) for (attrName in attrs) {
+      if (attrName === "style") for (styleName in attrs.style) {
+        ele.style[styleName] = attrs.style[styleName];
+      }
+      else if (attrs[attrName])
+        ele.setAttribute(attrName, attrs[attrName]);
     }
-}, 'Stop');
-button4.onclick = () => {
-    stop()
-};
-
-var button5 = create("button", {
-    class: "mainbtns",
-    id: "refreshbtn"
-}, 'Refresh');
-button5.onclick = () => {
-    refresh()
-};
-
-var button6 = create("button", {
-    class: "mainbtns",
-    id: "resultbtn"
-}, 'Move Results');
-button6.onclick = () => {
-    onMainDivCheck();
-    $(".feed-type-toggle > div.active").click();
-};
-
-var button7 = create("button", {
-    class: "mainbtns",
-    id: "notlikedbtn"
-}, 'Not Liked');
-button7.onclick = () => {
-    notLikedCheck();
-    $(".feed-type-toggle > div.active").click();
-};
-
-var button8 = create("button", {
-    class: "mainbtns",
-    id: "hideuserbtn"
-}, 'Hide ' + username);
-button8.onclick = () => {
-    hideUserCheck();
-    $(".feed-type-toggle > div.active").click();
-};
-
-var searchinput = create("input", {
-    class: "searchinput",
-    id: "searchinput"
-});
-searchinput.onkeyup = () => {
-    search()
-};
-searchinput.placeholder = "Search Anime";
+  if (html)
+    ele.innerHTML = html;
+  return ele;
+}
 //Check - NotLiked
 notLiked = JSON.parse(localStorage.getItem("notLiked"));
-
-function notLikedCheck() {
-    notLiked = !notLiked;
-    localStorage.setItem("notLiked", notLiked);
-    getSettings();
-}
+function notLikedCheck() {notLiked = !notLiked; localStorage.setItem("notLiked", notLiked); getSettings();}
 //Check - onMainDiv
 onMainDiv = JSON.parse(localStorage.getItem("onMainDiv"));
-
-function onMainDivCheck() {
-    onMainDiv = !onMainDiv;
-    localStorage.setItem("onMainDiv", onMainDiv);
-    getSettings();
-}
+function onMainDivCheck() {onMainDiv = !onMainDiv;localStorage.setItem("onMainDiv", onMainDiv);getSettings();}
 //Check - hideUser
 hideUser = JSON.parse(localStorage.getItem("hideUser"));
-
-function hideUserCheck() {
-    hideUser = !hideUser;
-    localStorage.setItem("hideUser", hideUser);
-    getSettings();
+function hideUserCheck() {hideUser = !hideUser;localStorage.setItem("hideUser", hideUser);getSettings();
 }
 //Get Saved Settings
-function getSettings() {
-    if (notLiked) {
-        set(notlikedbtn, {
-            style: {
-                background: "rgba(40,56,77)"
-            }
-        });
-    } else {
-        set(notlikedbtn, {
-            style: {
-                background: "rgb(var(--color-background))"
-            }
-        });
-    }
-    if (onMainDiv) {
-        set(resultbtn, {
-            style: {
-                background: "rgba(40,56,77)"
-            }
-        });
-    } else {
-        set(resultbtn, {
-            style: {
-                background: "rgb(var(--color-background))"
-            }
-        });
-    }
-    if (hideUser) {
-        set(hideuserbtn, {
-            style: {
-                background: "rgba(40,56,77)"
-            }
-        });
-    } else {
-        set(hideuserbtn, {
-            style: {
-                background: "rgb(var(--color-background))"
-            }
-        });
-    }
-}
+function getSettings() {notlikedbtn.classList.toggle("btn-active", notLiked);resultbtn.classList.toggle("btn-active", onMainDiv);hideuserbtn.classList.toggle("btn-active", hideUser);}
+
+//Create Buttons
+var button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Activity Filter");button.onclick=()=>{createDiv()};
+var button2=create("button",{class:"mainbtns",id:"closebtn"},"Close");button2.onclick=()=>{closeDiv()};
+var button3=create("button",{class:"mainbtns",id:"filterallbtn"},"Filter All");button3.onclick=()=>{clearInterval(interval),filterAll()};
+var button4=create("button",{class:"mainbtns",id:"stopbtn",style:{visibility:"hidden",marginTop:"0"}},"Stop");button4.onclick=()=>{stop()};
+var button5=create("button",{class:"mainbtns",id:"refreshbtn"},"Refresh");button5.onclick=()=>{refresh()};
+var button6=create("button",{class:"mainbtns",id:"resultbtn"},"Move Results");button6.onclick=()=>{onMainDivCheck(),$(".feed-type-toggle > div.active").click()};
+var button7=create("button",{class:"mainbtns",id:"notlikedbtn"},"Not Liked");button7.onclick=()=>{notLikedCheck(),$(".feed-type-toggle > div.active").click()};
+var button8=create("button",{class:"mainbtns",id:"hideuserbtn"},"Hide "+username);button8.onclick=()=>{hideUserCheck(),$(".feed-type-toggle > div.active").click()};
+var searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinput.onkeyup=()=>{search()};searchinput.placeholder = "Search Anime";
 
 //Create MainDiv
 function createDiv() {
-    listprogress();
-    active = !active;
+    listprogress(); active = !active;
     if (document.querySelector("li.el-dropdown-menu__item.active")) {
         delay(100).then(() => document.querySelector("li.el-dropdown-menu__item.active").className = document.querySelector("li.el-dropdown-menu__item.active").className.replace(/(?:^|\s)active(?!\S)/g, ''));
     }
     if (active) {
         button.setAttribute("class", "el-dropdown-menu__item active");
-
         var listDiv = create("div", {
             class: "maindiv",
             id: "listDiv"
         }, '<b>' + button.innerText + '</b>');
         const list = document.querySelector(".activity-feed-wrap + div");
         list.insertBefore(listDiv, list.children[0]);
-
-        var buttonsDiv = create("div", {
-            class: "buttonsDiv",
-            id: "buttonsDiv",
-            style: {
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                marginTop: "10px",
-                wordBreak: "break-word"
-            }
-        });
+        var buttonsDiv=create("div",{class:"buttonsDiv",id:"buttonsDiv",style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",marginTop:"10px",wordBreak:"break-word"}});
         listDiv.appendChild(buttonsDiv);
-
-
         listDiv.appendChild(searchinput);
-
         buttonsDiv.append(button2, button3, button5, button6, button7, button8);
-
-        var stopDiv = create("div", {
-            class: "stopDiv",
-            id: "stopDiv",
-            style: {
-                display: "none",
-                marginTop: "10px"
-            }
-        });
+        var stopDiv=create("div",{class:"stopDiv",id:"stopDiv",style:{display:"none",marginTop:"10px"}});
         listDiv.appendChild(stopDiv);
         stopDiv.appendChild(button4);
-
-        var animedataDiv = create("div", {
-            class: "animedataDiv",
-            id: "animedataDiv",
-            style: {
-                display: "grid",
-                maxHeight: "265px",
-                overflowY: "scroll",
-                paddingTop: "5px"
-            }
-        });
+        var animedataDiv=create("div",{class:"animedataDiv",id:"animedataDiv",style:{display:"grid",maxHeight:"265px",overflowY:"scroll",paddingTop:"5px"}});
         listDiv.appendChild(animedataDiv);
-
-        var ResultDiv = create("div", {
-            class: "maindiv",
-            id: "ResultDiv",
-            style: {
-                display: "none",
-                maxHeight: "460px"
-            }
-        }, '<b>Results</br></b>');
-        var ResultDivInside = create("div", {
-            class: "ResultDivInside",
-            id: "ResultDivInside",
-            style: {
-                maxHeight: "400px"
-            }
-        });
+        var ResultDiv=create("div",{class:"maindiv",id:"ResultDiv",style:{display:"none",maxHeight:"460px"}},"<b>Results</br></b>");
+        var ResultDivInside=create("div",{class:"ResultDivInside",id:"ResultDivInside",style:{maxHeight:"400px"}});
         ResultDiv.appendChild(ResultDivInside);
         $(ResultDiv).insertAfter(".maindiv");
         searchinput.value = "";
         getlist();
         getSettings();
     };
-    if (!active) {
-        closeDiv();
-    }
+    if (!active) {closeDiv();}
 }
 
 //Close MainDiv
@@ -472,6 +294,16 @@ function closeDiv() {
     listDiv.remove();
     ResultDiv.remove();
     active = false;
+}
+
+//Click to list progress
+function listprogress() {
+    var list = document.querySelectorAll("li:nth-child(3)");
+    for (var x = 0; x < list.length; x++) {
+        if (list[x].innerText.trim() == "List Progress") {
+            list[x].click();
+        }
+    }
 }
 
 //Filter All Button
@@ -499,16 +331,6 @@ function filterAll() {
   else {window.alert("Error: Anime list is empty. Please search or watch anime.")}
 }
 
-//Click to list progress
-function listprogress() {
-    var list = document.querySelectorAll("li:nth-child(3)");
-    for (var x = 0; x < list.length; x++) {
-        if (list[x].innerText.trim() == "List Progress") {
-            list[x].click();
-        }
-    }
-}
-
 //Filter Activity
 function replacedivloop(el) {
     interval = setTimeout(function() {
@@ -525,6 +347,7 @@ function replacedivloop(el) {
         let trimArray1 = activityArray.map(element => {
             return element.trim();
         });
+
         if (filterall) {
             trimArray = mainarray.map(element => {
                 return element.trim();
@@ -545,8 +368,10 @@ function replacedivloop(el) {
                 }
             }
         }
-        if (result == 0) {
 
+
+
+        if (result == 0) {
             if (trimArray1[val] == null) {
                 if (onMainDiv) {
                     window.scrollTo(0, 100);
@@ -559,7 +384,6 @@ function replacedivloop(el) {
                 document.getElementsByClassName("activity-entry")[val].classList.remove('activity-entry');
                 val = 0;
             }
-
         }
         if (result == 1) {
 
@@ -594,17 +418,9 @@ function replacedivloop(el) {
                 result = 0;
                 document.getElementById("ResultDivInside").append(entry);
                 if (ResultDiv.innerText.length > 10) {
-                    set(ResultDiv, {
-                        style: {
-                            display: "grid"
-                        }
-                    });
+                  set(ResultDiv, {style: {display: "grid"}});
                 } else {
-                    set(ResultDiv, {
-                        style: {
-                            display: "none"
-                        }
-                    });
+                    set(ResultDiv, {style: {display: "none"}});
                 }
             }
             val++;
@@ -620,31 +436,12 @@ function replacedivloop(el) {
         let ad = document.querySelectorAll(".animedata");
         for (var x = 0; x < ad.length; x++) {
             if (filterall) {
-                set(ad[x], {
-                    style: {
-                        border: "1px solid gray",
-                        marginBottom: "5px",
-                        borderRadius: "5px",
-                        background: 'rgb(var(--color-background))'
-                    }
-                });
+              set(ad[x],{style:{border:"1px solid gray",marginBottom:"5px",borderRadius:"5px",background:"rgb(var(--color-background))"}});
             } else {
                 if (ad[x].innerText == el.innerText) {
-                    set(ad[x], {
-                        style: {
-                            border: "1px solid gray",
-                            borderRadius: "5px",
-                            background: 'rgb(var(--color-background))'
-                        }
-                    });
+                  set(ad[x],{style:{border:"1px solid gray",borderRadius:"5px",background:"rgb(var(--color-background))"}});
                 } else {
-                    set(ad[x], {
-                        style: {
-                            border: "0",
-                            marginBottom: "0",
-                            background: 'transparent'
-                        }
-                    });
+                  set(ad[x],{style:{border:"0",marginBottom:"0",background:"transparent"}});
                 }
             }
         }
@@ -654,11 +451,7 @@ function replacedivloop(el) {
 //refresh activity list
 function refresh() {
     stop();
-    set(ResultDiv, {
-        style: {
-            display: "none"
-        }
-    });
+    set(ResultDiv, {style: {display: "none"}});
     $(".feed-type-toggle > div.active").click();
 }
 
@@ -668,24 +461,10 @@ function stop() {
     clearInterval(interval);
     let ab = document.querySelectorAll(".animedata");
     for (var x = 0; x < ab.length; x++) {
-        set(ab[x], {
-            style: {
-                border: "0",
-                marginBottom: "0",
-                background: 'transparent'
-            }
-        });
-        set(ResultDivInside, {
-            style: {
-                background: 'rgb(var(--color-background))'
-            }
-        });
+        set(ab[x], {style: {border: "0",marginBottom: "0",background: 'transparent'}});
+        set(ResultDivInside, {style: {background: 'rgb(var(--color-background))'}});
     }
-    set(stopDiv, {
-        style: {
-            display: "none"
-        }
-    });
+    set(stopDiv, {style: {display: "none"}});
 }
 
 //Delay
@@ -695,11 +474,7 @@ const delay = (delayInms) => {
 
 //Remove Results if list refreshed
 window.onclick = function() {
-    if (active && ResultDiv.innerText == 'Results\n') set(ResultDiv, {
-        style: {
-            display: "none"
-        }
-    });
+    if (active && ResultDiv.innerText == 'Results\n') set(ResultDiv, {style: {display: "none"}});
 }
 
 //reappend button
@@ -731,59 +506,15 @@ window.onpageshow = function() {
 }
 
 function getlist() {
-    var query = `
-query($name:String!,$listType:MediaType,$listStatus:MediaListStatus){
-				MediaListCollection(userName:$name,type:$listType,status:$listStatus){
-		lists{
-			entries{
-				... mediaListEntry
-			}
-		}
-	}
-}
-fragment mediaListEntry on MediaList{
-	mediaId
-    media {
-    type
-    id
-    siteUrl
-    title {
-      romaji
-    }
-  coverImage {
-    large
-  }
-}}
-`;
-
-    var variables = {
-        name: username,
-        listType: "ANIME",
-        listStatus: "CURRENT"
-    };
-
+    var query = `query($name:String!,$listType:MediaType,$listStatus:MediaListStatus){
+    MediaListCollection(userName:$name,type:$listType,status:$listStatus){lists{entries{... mediaListEntry}}}}
+    fragment mediaListEntry on MediaList{mediaId media {type id siteUrl title {romaji}coverImage {large}}}`;
+    var variables = {name: username,listType: "ANIME",listStatus: "CURRENT"};
     var url = 'https://graphql.anilist.co',
-        options = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-                query: query,
-                variables: variables,
-            })
-        };
-
-    fetch(url, options).then(handleResponse)
-        .then(handleData)
-        .catch(handleError);
-
-    function handleResponse(response) {
-        return response.json().then(function(json) {
-            return response.ok ? json : Promise.reject(json);
-        });
-    }
+        options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},
+                   body: JSON.stringify({query: query,variables: variables,})};
+    fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
+    function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
 
     function handleData(data) {
         var arr = [];
@@ -808,7 +539,7 @@ fragment mediaListEntry on MediaList{
             var a = create("a", {
                 class: "animedata",
                 id: (data.data.MediaListCollection.lists[0].entries[x].media.id),
-                href: (empty())
+                href: (e())
             });
             aimg.before(a);
             a.innerText = (data.data.MediaListCollection.lists[0].entries[x].media.title.romaji);
@@ -816,95 +547,34 @@ fragment mediaListEntry on MediaList{
             a.appendChild(aimg);
         }}
         animedataclick();
-
     }
-
-    function handleError(error) {
-        console.error(error);
-    }
+    function handleError(error) {console.error(error);}
 }
 
 function search() {
-    var query = `
-query ($id: Int, $page: Int, $search: String) {
-  Page (page: $page) {
-    media (id: $id, search: $search, type: ANIME) {
-    type
-    id
-    siteUrl
-    title {
-      romaji
-    }
-  coverImage {
-    large
-  }
-  }
-  }
-}
-`;
-
-    var variables = {
-        search: searchinput.value,
-        page: 1
-    };
-
-    var url = 'https://graphql.anilist.co',
-        options = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-                query: query,
-                variables: variables,
-            })
-        };
-
-    fetch(url, options).then(handleResponse)
-        .then(handleData)
-        .catch(handleError);
-
-    function handleResponse(response) {
-        return response.json().then(function(json) {
-            return response.ok ? json : Promise.reject(json);
-        });
-    }
+    var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: ANIME) {type id siteUrl title { romaji } coverImage { large  }}}}`;
+    var variables = {search: searchinput.value,page: 1};
+    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},
+            body: JSON.stringify({query: query,variables: variables,})};
+    fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
+    function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
 
     function handleData(data) {
         var arr = [];
         var arr2 = [];
-        if (searchinput.value == "") {
-            getlist();
-        } else {
-            animedataDiv.innerHTML = "";
-        }
-
+        if (searchinput.value == "") {getlist();} else {animedataDiv.innerHTML = "";}
         for (var x = 0; x < data.data.Page.media.length; x++) {
             arr.push(data.data.Page.media[x].title.romaji);
             arr2.push(data.data.Page.media[x].coverImage.large);
             const trimArray = arr.map(element => {
                 return element.trim();
             });
-
-            var aimg = create("a", {
-                class: "animedataimg",
-                id: "animedataimg",
-                href: "" + (data.data.Page.media[x].siteUrl),
-                style: {
-                    backgroundImage: "url(" + data.data.Page.media[x].coverImage.large + ")"
-                }
-            });
-            var a = create("a", {
-                class: "animedata",
-                id: (data.data.Page.media[x].id),
-                href: (empty())
-            });
+            var aimg=create("a",{class:"animedataimg",id:"animedataimg",href:""+data.data.Page.media[x].siteUrl,style:{backgroundImage:"url("+data.data.Page.media[x].coverImage.large+")"}});
+            var a=create("a",{class:"animedata",id:data.data.Page.media[x].id,href:e()});
             aimg.before(a);
             a.innerText = (data.data.Page.media[x].title.romaji);
             animedataDiv.appendChild(a);
             a.appendChild(aimg);
-
         }
         var elem = document.querySelectorAll(".animedata")
         mainarray = [];
@@ -914,40 +584,24 @@ query ($id: Int, $page: Int, $search: String) {
         }
         animedataclick();
     }
-
-    function handleError(error) {
-        console.error(error);
-    }
+    function handleError(error) {console.error(error);}
 }
-function empty(){}
+function e(){}
 function animedataclick() {
     each('.animedata', function(el) {
         el.addEventListener('click', function(e) {
-            filterall = false;
             listprogress();
-            clearInterval(interval);
             refresh();
             replacedivloop(el);
-            set(stopDiv, {
-                style: {
-                    display: "flex"
-                }
-            });
-            set(button4, {
-                style: {
-                    visibility: "visible"
-                }
-            })
+            set(stopDiv, {style: {display: "flex"}});
+            set(button4, {style: {visibility: "visible"}})
             e.preventDefault();
             filterLinks(el);
         });
     });
-    // filter links functions
     function filterLinks(element) {
-        // get text
         var el = element.textContent
     };
-    // forech arrays
     function each(el, callback) {
         var allDivs = document.querySelectorAll(el),
             alltoArr = Array.prototype.slice.call(allDivs);
@@ -955,5 +609,4 @@ function animedataclick() {
             if (callback) return callback(selector);
         });
     };
-
 }
