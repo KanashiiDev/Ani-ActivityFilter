@@ -1,2 +1,2 @@
 # Ani-ActivityFilter
-Simple userscript/extension for AniList that filters user activities.
+Simple userscript/extension for AniList that filters users anime activities.
