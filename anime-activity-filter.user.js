@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Anime Activity Filter
-// @namespace   https://github.com/hachiman-hikigaya
+// @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
 //@supportURL   https://github.com/KanashiiDev/Ani-ActivityFilter/issues
