@@ -276,7 +276,7 @@ function hideUserCheck() {hideUser = !hideUser;localStorage.setItem("hideUser", 
 function getSettings() {notlikedbtn.classList.toggle("btn-active", notLiked);resultbtn.classList.toggle("btn-active", onMainDiv);hideuserbtn.classList.toggle("btn-active", hideUser);}
 
 //Create Buttons
-let button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Anime Filter");button.onclick=()=>{createDiv()};
+let button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Anime Activity Filter");button.onclick=()=>{createDiv()};
 let button2=create("button",{class:"mainbtns",id:"closebtn"},"Close");button2.onclick=()=>{closeDiv()};
 let button3=create("button",{class:"mainbtns",id:"filterallbtn"},"Filter All");button3.onclick=()=>{clearInterval(interval),filterAll()};
 let button4=create("button",{class:"mainbtns",id:"stopbtn",style:{visibility:"hidden",marginTop:"0"}},"Stop");button4.onclick=()=>{stop()};
