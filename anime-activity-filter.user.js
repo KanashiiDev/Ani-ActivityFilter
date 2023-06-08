@@ -3,9 +3,10 @@
 // @namespace   https://github.com/hachiman-hikigaya
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
+//@supportURL   https://github.com/KanashiiDev/Ani-ActivityFilter/issues
 // @grant       none
-// @version     1.0
-// @author      hachiman-hikigaya
+// @version     1.0.1
+// @author      KanashiiDev
 // @description Filters users anime activities.
 // ==/UserScript==
 
@@ -100,6 +101,11 @@ var styles = `
     -webkit-border-radius: 10px;
             border-radius: 10px
     }
+    .maindivheader{
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px
+    }
     .ResultDivInside {
     overflow-y: scroll;
     -webkit-border-radius: 10px;
@@ -110,6 +116,7 @@ var styles = `
     margin-top: 10px;
     margin-bottom: 10px
     }
+    .userdata,
     .animedata {
     cursor: pointer;
     display: -ms-grid;
@@ -129,6 +136,7 @@ var styles = `
             border-radius: 5px;
     background: transparent;
     }
+    .userdataimg,
     .animedataimg {
     background-repeat:no-repeat;
     height: 25px;
@@ -140,7 +148,37 @@ var styles = `
     -webkit-border-radius: 5px;
             border-radius: 5px
     }
-
+    .blacklistDiv {
+    max-height: 245px;
+    overflow-y: scroll;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,201px);
+    justify-content: space-evenly
+    }
+    .animedataDiv {
+    display: grid;
+    max-height: 265px;
+    overflow-y: scroll;
+    padding-top: 5px
+    }
+    .buttonsDiv {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    word-break: break-word
+    }
+    .blocked {
+    border: 1px solid darkred;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    background: rgb(var(--color-background))
+    }
+    .selected {
+    border:1px solid gray;
+    margin-bottom:5px;
+    border-radius:5px;
+    background:rgb(var(--color-background))
+    }
+    .blacklistDiv,
    .animedataDiv,
    .ResultDivInside {
    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black var(--top-mask-size), black -webkit-calc(100% - var(--bottom-mask-size)), transparent 100%);
@@ -187,7 +225,8 @@ var active = false;
 var filterall = false;
 var oldHref = document.location.href;
 interval = null;
-
+var liststatus = "CURRENT";
+var blacklistarray = [];
 // Create Function
 //create("element", {class:"", id:""},'text');
 function create(tag, attrs, html) {
@@ -237,16 +276,20 @@ function hideUserCheck() {hideUser = !hideUser;localStorage.setItem("hideUser", 
 function getSettings() {notlikedbtn.classList.toggle("btn-active", notLiked);resultbtn.classList.toggle("btn-active", onMainDiv);hideuserbtn.classList.toggle("btn-active", hideUser);}
 
 //Create Buttons
-var button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Activity Filter");button.onclick=()=>{createDiv()};
-var button2=create("button",{class:"mainbtns",id:"closebtn"},"Close");button2.onclick=()=>{closeDiv()};
-var button3=create("button",{class:"mainbtns",id:"filterallbtn"},"Filter All");button3.onclick=()=>{clearInterval(interval),filterAll()};
-var button4=create("button",{class:"mainbtns",id:"stopbtn",style:{visibility:"hidden",marginTop:"0"}},"Stop");button4.onclick=()=>{stop()};
-var button5=create("button",{class:"mainbtns",id:"refreshbtn"},"Refresh");button5.onclick=()=>{refresh()};
-var button6=create("button",{class:"mainbtns",id:"resultbtn"},"Move Results");button6.onclick=()=>{onMainDivCheck(),$(".feed-type-toggle > div.active").click()};
-var button7=create("button",{class:"mainbtns",id:"notlikedbtn"},"Not Liked");button7.onclick=()=>{notLikedCheck(),$(".feed-type-toggle > div.active").click()};
-var button8=create("button",{class:"mainbtns",id:"hideuserbtn"},"Hide "+username);button8.onclick=()=>{hideUserCheck(),$(".feed-type-toggle > div.active").click()};
-var searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinput.onkeyup=()=>{search()};searchinput.placeholder = "Search Anime";
-
+let button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Anime Filter");button.onclick=()=>{createDiv()};
+let button2=create("button",{class:"mainbtns",id:"closebtn"},"Close");button2.onclick=()=>{closeDiv()};
+let button3=create("button",{class:"mainbtns",id:"filterallbtn"},"Filter All");button3.onclick=()=>{clearInterval(interval),filterAll()};
+let button4=create("button",{class:"mainbtns",id:"stopbtn",style:{visibility:"hidden",marginTop:"0"}},"Stop");button4.onclick=()=>{stop()};
+let button5=create("button",{class:"mainbtns",id:"refreshbtn"},"Refresh");button5.onclick=()=>{refresh()};
+let button6=create("button",{class:"mainbtns",id:"resultbtn"},"Move Results");button6.onclick=()=>{onMainDivCheck(),$(".feed-type-toggle > div.active").click()};
+let button7=create("button",{class:"mainbtns",id:"notlikedbtn"},"Not Liked");button7.onclick=()=>{notLikedCheck(),$(".feed-type-toggle > div.active").click()};
+let button8=create("button",{class:"mainbtns",id:"hideuserbtn"},"Hide "+username);button8.onclick=()=>{hideUserCheck(),$(".feed-type-toggle > div.active").click()};
+let button9=create("button",{class:"mainbtns",id:"currentbtn"},"Completed Anime");button9.onclick=()=>{if(liststatus!=="COMPLETED"){liststatus = "COMPLETED";getlist()}};
+let button10=create("button",{class:"mainbtns",id:"completedbtn"},"Current Anime");button10.onclick=()=>{if(liststatus!=="CURRENT"){liststatus = "CURRENT";getlist()}};
+let button11=create("button",{class:"mainbtns",id:"planningbtn"},"Planning Anime");button11.onclick=()=>{if(liststatus!=="PLANNING"){liststatus = "PLANNING";getlist()}};
+let button12=create("button",{class:"mainbtns",id:"blacklistbtn",style: {position:"absolute",right:"10px"}},"Blacklist");button12.onclick=()=>{toggleBlocklist()};
+let searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinput.onkeyup=()=>{search()};searchinput.placeholder = "Search Anime";
+let blacklistDiv = create("div", {class: "blacklistDiv"});
 //Create MainDiv
 function createDiv() {
     listprogress(); active = !active;
@@ -255,28 +298,28 @@ function createDiv() {
     }
     if (active) {
         button.setAttribute("class", "el-dropdown-menu__item active");
-        var listDiv = create("div", {
-            class: "maindiv",
-            id: "listDiv"
-        }, '<b>' + button.innerText + '</b>');
+          let listDiv = create("div", {class: "maindiv",id: "listDiv"}, '<div class="maindivheader"><b>'+button.innerText+ '</b></div>');
         const list = document.querySelector(".activity-feed-wrap + div");
         list.insertBefore(listDiv, list.children[0]);
-        var buttonsDiv=create("div",{class:"buttonsDiv",id:"buttonsDiv",style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",marginTop:"10px",wordBreak:"break-word"}});
-        listDiv.appendChild(buttonsDiv);
-        listDiv.appendChild(searchinput);
-        buttonsDiv.append(button2, button3, button5, button6, button7, button8);
-        var stopDiv=create("div",{class:"stopDiv",id:"stopDiv",style:{display:"none",marginTop:"10px"}});
+        document.querySelector("#listDiv > div").appendChild(button12);
+        let buttonsDiv=create("div",{class:"buttonsDiv",id:"buttonsDiv"});
+        listDiv.append(blacklistDiv,buttonsDiv,searchinput);
+        buttonsDiv.append(button2, button3, button5, button6, button7, button8,button9,button10,button11);
+        let stopDiv=create("div",{class:"stopDiv",id:"stopDiv",style:{display:"none",marginTop:"10px"}});
         listDiv.appendChild(stopDiv);
         stopDiv.appendChild(button4);
-        var animedataDiv=create("div",{class:"animedataDiv",id:"animedataDiv",style:{display:"grid",maxHeight:"265px",overflowY:"scroll",paddingTop:"5px"}});
+        let animedataDiv=create("div",{class:"animedataDiv",id:"animedataDiv"});
         listDiv.appendChild(animedataDiv);
-        var ResultDiv=create("div",{class:"maindiv",id:"ResultDiv",style:{display:"none",maxHeight:"460px"}},"<b>Results</br></b>");
-        var ResultDivInside=create("div",{class:"ResultDivInside",id:"ResultDivInside",style:{maxHeight:"400px"}});
+        let ResultDiv=create("div",{class:"maindiv",id:"ResultDiv",style:{display:"none",maxHeight:"460px"}},"<b>Results</br></b>");
+        let ResultDivInside=create("div",{class:"ResultDivInside",id:"ResultDivInside",style:{maxHeight:"400px"}});
         ResultDiv.appendChild(ResultDivInside);
         $(ResultDiv).insertAfter(".maindiv");
         searchinput.value = "";
         getlist();
         getSettings();
+        let activitiesidarray = window.localStorage.getItem('blockarray');
+        let x = activitiesidarray.split(/[.,!,?]/);
+        blacklistarray = x;
     };
     if (!active) {closeDiv();}
 }
@@ -310,23 +353,15 @@ function listprogress() {
 function filterAll() {
     var elem = document.querySelectorAll(".animedata")
     if(elem.length > 0) {
-    mainarray = [];
-    for (var x = 0; x < elem.length; x++) {
-        mainarray.push(elem[x].innerText);
-        mainarray.join("");
-    }
+        elem.forEach(animeinfo => {
+            mainarray.push(animeinfo.innerText);
+            mainarray.join("");
+        })
     filterall = true;
     listprogress();
-    set(stopDiv, {
-        style: {
-            display: "flex"
-        }
-    });
-    set(button4, {
-        style: {
-            visibility: "visible"
-        }
-    })
+    set(buttonsDiv, {style: {pointerEvents: "none"}})
+    set(stopDiv, {style: {display: "flex"}});
+    set(button4, {style: {visibility: "visible"}})
       delay(1000).then(() => replacedivloop());}
   else {window.alert("Error: Anime list is empty. Please search or watch anime.")}
 }
@@ -341,20 +376,16 @@ function replacedivloop(el) {
         var activityArray = [];
         let trimArray = [];
 
-        for (var x = 0; x < activities.length; x++) {
-            activityArray.push(activities[x].text);
-        }
+        activities.forEach(act => {
+        activityArray.push(act.text);
+        })
+
         let trimArray1 = activityArray.map(element => {
             return element.trim();
         });
 
-        if (filterall) {
-            trimArray = mainarray.map(element => {
-                return element.trim();
-            });
-        } else {
-            trimArray = el.textContent;
-        }
+        if (filterall) {trimArray = mainarray.map(element => {return element.trim();});
+        } else {trimArray = el.textContent;}
             if (filterall) {
                    for (var i = 0; i < mainarray.length; i++) {
                 if (trimArray1[val] == trimArray[i]) {
@@ -363,13 +394,10 @@ function replacedivloop(el) {
             }} else {
                    for (var i = 0; i < activities.length; i++) {
                 if (trimArray1[val] == trimArray) {
-
                     result = 1;
                 }
             }
         }
-
-
 
         if (result == 0) {
             if (trimArray1[val] == null) {
@@ -394,6 +422,14 @@ function replacedivloop(el) {
                 var user = entry.querySelector('.name').innerText;
                 var entryhref = activities[val].href;
             }
+          if (blacklistarray.length > 0) {
+            for (var i = 0; i < mainarray.length; i++) {
+              if (blacklistarray.indexOf(user) !== -1) {
+                entry.innerHTML = "";
+                entry.classList.remove('activity-entry');
+              }
+            }
+          }
             if (notLiked) {
                 if (entry) {
                     if (liked) {
@@ -436,12 +472,12 @@ function replacedivloop(el) {
         let ad = document.querySelectorAll(".animedata");
         for (var x = 0; x < ad.length; x++) {
             if (filterall) {
-              set(ad[x],{style:{border:"1px solid gray",marginBottom:"5px",borderRadius:"5px",background:"rgb(var(--color-background))"}});
+              ad[x].classList.toggle("selected", true);
             } else {
                 if (ad[x].innerText == el.innerText) {
-                  set(ad[x],{style:{border:"1px solid gray",borderRadius:"5px",background:"rgb(var(--color-background))"}});
+                  ad[x].classList.toggle("selected", true);
                 } else {
-                  set(ad[x],{style:{border:"0",marginBottom:"0",background:"transparent"}});
+                  ad[x].classList.toggle("selected", false);
                 }
             }
         }
@@ -459,9 +495,10 @@ function refresh() {
 function stop() {
     filterall = false;
     clearInterval(interval);
-    let ab = document.querySelectorAll(".animedata");
-    for (var x = 0; x < ab.length; x++) {
-        set(ab[x], {style: {border: "0",marginBottom: "0",background: 'transparent'}});
+    let ad = document.querySelectorAll(".animedata");
+    for (var x = 0; x < ad.length; x++) {
+        set(buttonsDiv, {style: {pointerEvents: "auto"}})
+        ad[x].classList.toggle("selected", false);
         set(ResultDivInside, {style: {background: 'rgb(var(--color-background))'}});
     }
     set(stopDiv, {style: {display: "none"}});
@@ -471,7 +508,154 @@ function stop() {
 const delay = (delayInms) => {
     return new Promise(resolve => setTimeout(resolve, delayInms));
 }
+function getlist() {
+  if(liststatus === "CURRENT"){
+  button10.classList.toggle("btn-active", true);} else { button10.classList.toggle("btn-active", false);}
+  if(liststatus === "COMPLETED"){
+  button9.classList.toggle("btn-active", true);} else { button9.classList.toggle("btn-active", false);}
+  if(liststatus === "PLANNING"){
+  button11.classList.toggle("btn-active", true);} else { button11.classList.toggle("btn-active", false);}
+    var query = `query($name:String!,$listType:MediaType,$listStatus:MediaListStatus){
+    MediaListCollection(userName:$name,type:$listType,status:$listStatus){lists{entries{... mediaListEntry}}}}
+    fragment mediaListEntry on MediaList{mediaId media {type id siteUrl title {romaji}coverImage {large}}}`;
+    var variables = {name: username,listType: "ANIME",listStatus: liststatus};
+    var url = 'https://graphql.anilist.co',
+        options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},
+                   body: JSON.stringify({query: query,variables: variables,})};
+    fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
+    function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
 
+    function handleData(data) {
+        animedataDiv.innerHTML = "";
+      if(data.data.MediaListCollection.lists.length > 0){
+        data.data.MediaListCollection.lists[0].entries.forEach(animedata => {
+          let aimg = create("a", {class: "animedataimg",href:animedata.media.siteUrl,style: {backgroundImage: "url(" + animedata.media.coverImage.large + ")"}});
+          let a = create("a", {class: "animedata",id: (animedata.media.id)});
+          aimg.before(a);
+          a.innerText = (animedata.media.title.romaji);
+          animedataDiv.appendChild(a);
+          a.appendChild(aimg);
+        })}
+        animedataclick();
+    }
+    function handleError(error) {console.error(error);}
+}
+function toggleBlocklist(){
+  if(blacklistDiv.style.display === "none"){
+    blacklistDiv.style.display = "grid";
+    blacklistDiv.innerHTML = "";
+    getFollowing();
+  }
+  else{blacklistDiv.style.display = "none"}
+};
+function getFollowing() {
+  recall();
+  var page=1;
+  function recall(){
+      var query = `query ($id: Int!, $page: Int) {Page (page: $page) {pageInfo{currentPage hasNextPage}
+  following(userId: $id, sort:USERNAME) {name avatar{medium} siteUrl}}}`;
+    var variables = {id:userid,page:page};
+    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},
+            body: JSON.stringify({query: query,variables: variables})};
+    fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
+    function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
+
+    function handleData(data) {
+       data.data.Page.following.forEach(following => {
+        let userimg=create("a",{class:"userdataimg",href:following.siteUrl,style:{backgroundImage:"url("+following.avatar.medium+")"}});
+        let userdata=create("a",{class:"userdata"});
+        userimg.before(userdata);
+        userdata.innerText = (following.name);
+        blacklistDiv.appendChild(userdata);
+        userdata.appendChild(userimg);
+        })
+      if(data.data.Page.pageInfo.hasNextPage === true){
+			page = data.data.Page.pageInfo.currentPage + 1;
+			recall();
+		}
+      blacklistclick();
+      blacklistcheck();
+    }
+    function handleError(error) {console.error(error);}}
+}
+function search() {
+    var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: ANIME) {type id siteUrl title { romaji } coverImage { large  }}}}`;
+    var variables = {search: searchinput.value,page: 1};
+    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},body: JSON.stringify({query: query,variables: variables})};
+    fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
+    function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
+
+    function handleData(data) {
+      if (searchinput.value == "") {getlist();} else {animedataDiv.innerHTML = "";}
+      data.data.Page.media.forEach(animedata => {
+        let aimg=create("a",{class:"animedataimg",href:animedata.siteUrl,style:{backgroundImage:"url("+animedata.coverImage.large+")"}});
+        let a=create("a",{class:"animedata",id:animedata.id});
+        aimg.before(a);
+        a.innerText = (animedata.title.romaji);
+        animedataDiv.appendChild(a);
+        a.appendChild(aimg);
+        })
+        var elem = document.querySelectorAll(".animedata")
+        mainarray = [];
+        elem.forEach(animeinfo => {
+            mainarray.push(animeinfo.innerText);
+            mainarray.join("");
+        })
+        animedataclick();
+    }
+    function handleError(error) {console.error(error);}
+}
+function e(){}
+function animedataclick() {
+    each('.animedata', function(el) {
+        el.addEventListener('click', function(e) {
+            listprogress();
+            refresh();
+            delay(1000).then(() => replacedivloop(el));
+            set(stopDiv, {style: {display: "flex"}});
+            set(button4, {style: {visibility: "visible"}})
+              set(buttonsDiv, {style: {pointerEvents: "none"}})
+            e.preventDefault();
+        });
+    });
+    function each(el, callback) {
+        var allDivs = document.querySelectorAll(el),
+            alltoArr = Array.prototype.slice.call(allDivs);
+        Array.prototype.forEach.call(alltoArr, function(selector, index) {
+            if (callback) return callback(selector);
+        });
+    };
+}
+function blacklistcheck(){
+  let userdata = document.querySelectorAll(".userdata")
+  if (!userdata) {setTimeout(blacklistcheck, 500);return}
+  let activitiesidarray = window.localStorage.getItem('blockarray');
+  let x = activitiesidarray.split(/[.,!,?]/);
+  blacklistarray = x;
+  userdata.forEach(userinfo => {
+    if (blacklistarray.indexOf(userinfo.innerText) === -1) {
+      userinfo.classList.toggle("blocked", false)}
+    else {userinfo.classList.toggle("blocked", true)}}
+)}
+function blacklistclick() {
+    each('.userdata', function(el) {
+      var newItem = el.innerText;
+      el.onclick = () => {
+        blacklistarray.indexOf(newItem) === -1 ? blacklistarray.push(newItem) : blacklistarray.splice(blacklistarray.indexOf(newItem), 1);
+        localStorage.setItem("blockarray", [(blacklistarray)]);
+        let activitiesidarray = window.localStorage.getItem('blockarray');
+  let x = activitiesidarray.split(/[.,!,?]/);
+          localStorage.setItem("blockarray", (x));blacklistcheck();
+}
+    });
+    function each(el, callback) {
+        var allDivs = document.querySelectorAll(el),
+            alltoArr = Array.prototype.slice.call(allDivs);
+        Array.prototype.forEach.call(alltoArr, function(selector, index) {
+            if (callback) return callback(selector);
+        });
+    };
+}
 //Remove Results if list refreshed
 window.onclick = function() {
     if (active && ResultDiv.innerText == 'Results\n') set(ResultDiv, {style: {display: "none"}});
@@ -498,115 +682,6 @@ window.onpageshow = function() {
             }
         });
     });
-    var config = {
-        childList: true,
-        subtree: true
-    };
+    var config = {childList: true,subtree: true};
     observer.observe(bodyList, config);
-}
-
-function getlist() {
-    var query = `query($name:String!,$listType:MediaType,$listStatus:MediaListStatus){
-    MediaListCollection(userName:$name,type:$listType,status:$listStatus){lists{entries{... mediaListEntry}}}}
-    fragment mediaListEntry on MediaList{mediaId media {type id siteUrl title {romaji}coverImage {large}}}`;
-    var variables = {name: username,listType: "ANIME",listStatus: "CURRENT"};
-    var url = 'https://graphql.anilist.co',
-        options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},
-                   body: JSON.stringify({query: query,variables: variables,})};
-    fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
-    function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
-
-    function handleData(data) {
-        var arr = [];
-        var arr2 = [];
-        animedataDiv.innerHTML = "";
-      if(data.data.MediaListCollection.lists.length > 0){
-        for (var x = 0; x < data.data.MediaListCollection.lists[0].entries.length; x++) {
-            arr.push(data.data.MediaListCollection.lists[0].entries[x].media.title.romaji);
-            arr2.push(data.data.MediaListCollection.lists[0].entries[x].media.coverImage.large);
-            const trimArray = arr.map(element => {
-                return element.trim();
-            });
-
-            var aimg = create("a", {
-                class: "animedataimg",
-                id: "animedataimg",
-                href: "" + (data.data.MediaListCollection.lists[0].entries[x].media.siteUrl),
-                style: {
-                    backgroundImage: "url(" + data.data.MediaListCollection.lists[0].entries[x].media.coverImage.large + ")"
-                }
-            });
-            var a = create("a", {
-                class: "animedata",
-                id: (data.data.MediaListCollection.lists[0].entries[x].media.id),
-                href: (e())
-            });
-            aimg.before(a);
-            a.innerText = (data.data.MediaListCollection.lists[0].entries[x].media.title.romaji);
-            animedataDiv.appendChild(a);
-            a.appendChild(aimg);
-        }}
-        animedataclick();
-    }
-    function handleError(error) {console.error(error);}
-}
-
-function search() {
-    var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: ANIME) {type id siteUrl title { romaji } coverImage { large  }}}}`;
-    var variables = {search: searchinput.value,page: 1};
-    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},
-            body: JSON.stringify({query: query,variables: variables,})};
-    fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
-    function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
-
-    function handleData(data) {
-        var arr = [];
-        var arr2 = [];
-        if (searchinput.value == "") {getlist();} else {animedataDiv.innerHTML = "";}
-        for (var x = 0; x < data.data.Page.media.length; x++) {
-            arr.push(data.data.Page.media[x].title.romaji);
-            arr2.push(data.data.Page.media[x].coverImage.large);
-            const trimArray = arr.map(element => {
-                return element.trim();
-            });
-            var aimg=create("a",{class:"animedataimg",id:"animedataimg",href:""+data.data.Page.media[x].siteUrl,style:{backgroundImage:"url("+data.data.Page.media[x].coverImage.large+")"}});
-            var a=create("a",{class:"animedata",id:data.data.Page.media[x].id,href:e()});
-            aimg.before(a);
-            a.innerText = (data.data.Page.media[x].title.romaji);
-            animedataDiv.appendChild(a);
-            a.appendChild(aimg);
-        }
-        var elem = document.querySelectorAll(".animedata")
-        mainarray = [];
-        for (var x = 0; x < elem.length; x++) {
-            mainarray.push(elem[x].innerText);
-            mainarray.join("");
-        }
-        animedataclick();
-    }
-    function handleError(error) {console.error(error);}
-}
-function e(){}
-function animedataclick() {
-    each('.animedata', function(el) {
-        el.addEventListener('click', function(e) {
-            listprogress();
-            refresh();
-            replacedivloop(el);
-            set(stopDiv, {style: {display: "flex"}});
-            set(button4, {style: {visibility: "visible"}})
-            e.preventDefault();
-            filterLinks(el);
-        });
-    });
-    function filterLinks(element) {
-        var el = element.textContent
-    };
-    function each(el, callback) {
-        var allDivs = document.querySelectorAll(el),
-            alltoArr = Array.prototype.slice.call(allDivs);
-        Array.prototype.forEach.call(alltoArr, function(selector, index) {
-            if (callback) return callback(selector);
-        });
-    };
 }
