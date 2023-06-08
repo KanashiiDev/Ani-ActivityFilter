@@ -3,11 +3,10 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-//@supportURL   https://github.com/KanashiiDev/Ani-ActivityFilter/issues
-// @grant       none
 // @version     1.0.1
 // @author      KanashiiDev
 // @description Filters users anime activities.
+// @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
 // ==/UserScript==
 
 //CSS
@@ -298,7 +297,7 @@ function createDiv() {
     }
     if (active) {
         button.setAttribute("class", "el-dropdown-menu__item active");
-          let listDiv = create("div", {class: "maindiv",id: "listDiv"}, '<div class="maindivheader"><b>'+button.innerText+ '</b></div>');
+          let listDiv = create("div", {class: "maindiv",id: "listDiv"}, '<div class="maindivheader"><b>'+button.innerText+'</b></div>');
         const list = document.querySelector(".activity-feed-wrap + div");
         list.insertBefore(listDiv, list.children[0]);
         document.querySelector("#listDiv > div").appendChild(button12);
@@ -318,8 +317,10 @@ function createDiv() {
         getlist();
         getSettings();
         let activitiesidarray = window.localStorage.getItem('blockarray');
+        if(activitiesidarray !== null) {
         let x = activitiesidarray.split(/[.,!,?]/);
         blacklistarray = x;
+    }
     };
     if (!active) {closeDiv();}
 }
@@ -630,8 +631,9 @@ function blacklistcheck(){
   let userdata = document.querySelectorAll(".userdata")
   if (!userdata) {setTimeout(blacklistcheck, 500);return}
   let activitiesidarray = window.localStorage.getItem('blockarray');
+  if(activitiesidarray !==null) {
   let x = activitiesidarray.split(/[.,!,?]/);
-  blacklistarray = x;
+  blacklistarray = x;}
   userdata.forEach(userinfo => {
     if (blacklistarray.indexOf(userinfo.innerText) === -1) {
       userinfo.classList.toggle("blocked", false)}
