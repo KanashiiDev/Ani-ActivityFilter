@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name        Anime Activity Filter
+// @name        Activity Filter
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.0.1
+// @version     1.0.2
 // @author      KanashiiDev
-// @description Filters users anime activities.
+// @description Filters users anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
 // ==/UserScript==
 
@@ -31,10 +31,6 @@ var styles = `
     cursor: pointer;
     background: rgb(var(--color-background));
     color: rgb(var(--color-text));
-    -webkit-box-flex:1;
-    -webkit-flex-grow:1;
-        -ms-flex-positive:1;
-            flex-grow:1
     }
     .btn-active {
     background: rgb(40, 56, 77);
@@ -54,10 +50,6 @@ var styles = `
     margin: 4px;
     background: rgb(var(--color-background));
     color: rgb(var(--color-text));
-    -webkit-box-flex:1;
-    -webkit-flex-grow:1;
-        -ms-flex-positive:1;
-            flex-grow:1;
     outline: none;
     }
     .searchinput::-webkit-input-placeholder {
@@ -103,7 +95,8 @@ var styles = `
     .maindivheader{
     display: flex;
     align-items: center;
-    margin-bottom: 5px
+    margin-bottom: 5px;
+    text-align:center;
     }
     .ResultDivInside {
     overflow-y: scroll;
@@ -150,7 +143,6 @@ var styles = `
     .blacklistDiv {
     max-height: 245px;
     overflow-y: scroll;
-    display: grid;
     grid-template-columns: repeat(auto-fill,201px);
     justify-content: space-evenly
     }
@@ -176,6 +168,27 @@ var styles = `
     margin-bottom:5px;
     border-radius:5px;
     background:rgb(var(--color-background))
+    }
+    #switchbtn {
+    position: relative;
+    display: inherit;
+    height: 25px;
+    align-items: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    margin-left: 10px;
+    margin-right: 75px;
+    &:hover {
+    color: rgb(var(--color-text));
+    }}
+    #stopbtn{
+    margin-top:0;
+    -webkit-box-flex:1;
+    -webkit-flex-grow:1;
+    -ms-flex-positive:1;
+        flex-grow:1
     }
     .blacklistDiv,
    .animedataDiv,
@@ -226,6 +239,7 @@ var oldHref = document.location.href;
 interval = null;
 var liststatus = "CURRENT";
 var blacklistarray = [];
+var anime = true;
 // Create Function
 //create("element", {class:"", id:""},'text');
 function create(tag, attrs, html) {
@@ -275,20 +289,21 @@ function hideUserCheck() {hideUser = !hideUser;localStorage.setItem("hideUser", 
 function getSettings() {notlikedbtn.classList.toggle("btn-active", notLiked);resultbtn.classList.toggle("btn-active", onMainDiv);hideuserbtn.classList.toggle("btn-active", hideUser);}
 
 //Create Buttons
-let button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Anime Activity Filter");button.onclick=()=>{createDiv()};
+let switchbutton=create("button",{class:"mainbtns",id:"switchbtn"},'<p>'+"Anime"+'</p>'+"/"+'<p>'+"Manga"+'</p>');switchbutton.onclick=()=>{anime = !anime; switchAnimeManga()};
+let button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Activity Filter");button.onclick=()=>{createDiv()};
 let button2=create("button",{class:"mainbtns",id:"closebtn"},"Close");button2.onclick=()=>{closeDiv()};
 let button3=create("button",{class:"mainbtns",id:"filterallbtn"},"Filter All");button3.onclick=()=>{clearInterval(interval),filterAll()};
-let button4=create("button",{class:"mainbtns",id:"stopbtn",style:{visibility:"hidden",marginTop:"0"}},"Stop");button4.onclick=()=>{stop()};
+let button4=create("button",{class:"mainbtns",id:"stopbtn"},"Stop");button4.onclick=()=>{stop()};
 let button5=create("button",{class:"mainbtns",id:"refreshbtn"},"Refresh");button5.onclick=()=>{refresh()};
 let button6=create("button",{class:"mainbtns",id:"resultbtn"},"Move Results");button6.onclick=()=>{onMainDivCheck(),$(".feed-type-toggle > div.active").click()};
 let button7=create("button",{class:"mainbtns",id:"notlikedbtn"},"Not Liked");button7.onclick=()=>{notLikedCheck(),$(".feed-type-toggle > div.active").click()};
 let button8=create("button",{class:"mainbtns",id:"hideuserbtn"},"Hide "+username);button8.onclick=()=>{hideUserCheck(),$(".feed-type-toggle > div.active").click()};
-let button9=create("button",{class:"mainbtns",id:"currentbtn"},"Completed Anime");button9.onclick=()=>{if(liststatus!=="COMPLETED"){liststatus = "COMPLETED";getlist()}};
-let button10=create("button",{class:"mainbtns",id:"completedbtn"},"Current Anime");button10.onclick=()=>{if(liststatus!=="CURRENT"){liststatus = "CURRENT";getlist()}};
-let button11=create("button",{class:"mainbtns",id:"planningbtn"},"Planning Anime");button11.onclick=()=>{if(liststatus!=="PLANNING"){liststatus = "PLANNING";getlist()}};
+let button9=create("button",{class:"mainbtns",id:"currentbtn"},"Completed ");button9.onclick=()=>{if(liststatus!=="COMPLETED"){liststatus = "COMPLETED";getlist()}};
+let button10=create("button",{class:"mainbtns",id:"completedbtn"},"Current ");button10.onclick=()=>{if(liststatus!=="CURRENT"){liststatus = "CURRENT";getlist()}};
+let button11=create("button",{class:"mainbtns",id:"planningbtn"},"Planning ");button11.onclick=()=>{if(liststatus!=="PLANNING"){liststatus = "PLANNING";getlist()}};
 let button12=create("button",{class:"mainbtns",id:"blacklistbtn",style: {position:"absolute",right:"10px"}},"Blacklist");button12.onclick=()=>{toggleBlocklist()};
-let searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinput.onkeyup=()=>{search()};searchinput.placeholder = "Search Anime";
-let blacklistDiv = create("div", {class: "blacklistDiv"});
+let searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinput.onkeyup=()=>{search()};searchinput.placeholder = "Search";
+let blacklistDiv = create("div", {class: "blacklistDiv",style: {display:"none"}});
 //Create MainDiv
 function createDiv() {
     listprogress(); active = !active;
@@ -300,7 +315,7 @@ function createDiv() {
           let listDiv = create("div", {class: "maindiv",id: "listDiv"}, '<div class="maindivheader"><b>'+button.innerText+'</b></div>');
         const list = document.querySelector(".activity-feed-wrap + div");
         list.insertBefore(listDiv, list.children[0]);
-        document.querySelector("#listDiv > div").appendChild(button12);
+        document.querySelector("#listDiv > div").append(button12,switchbutton);
         let buttonsDiv=create("div",{class:"buttonsDiv",id:"buttonsDiv"});
         listDiv.append(blacklistDiv,buttonsDiv,searchinput);
         buttonsDiv.append(button2, button3, button5, button6, button7, button8,button9,button10,button11);
@@ -314,12 +329,12 @@ function createDiv() {
         ResultDiv.appendChild(ResultDivInside);
         $(ResultDiv).insertAfter(".maindiv");
         searchinput.value = "";
-        getlist();
         getSettings();
         let activitiesidarray = window.localStorage.getItem('blockarray');
         if(activitiesidarray !== null) {
         let x = activitiesidarray.split(/[.,!,?]/);
         blacklistarray = x;
+        switchAnimeManga();
     }
     };
     if (!active) {closeDiv();}
@@ -339,7 +354,25 @@ function closeDiv() {
     ResultDiv.remove();
     active = false;
 }
-
+function switchAnimeManga(){
+  if(anime)
+    {switchbutton.children[0].style.color="rgb(var(--color-blue))";
+     switchbutton.children[1].style.color="";
+     button9.innerText = "Completed Anime";
+     button10.innerText = "Current Anime";
+     button11.innerText = "Planning Anime";
+     searchinput.placeholder = "Search Anime";
+    }
+  else {
+    switchbutton.children[0].style.color="";
+    switchbutton.children[1].style.color="rgba(var(--color-green))";
+    button9.innerText = "Completed Manga";
+    button10.innerText = "Current Manga";
+    button11.innerText = "Planning Manga";
+    searchinput.placeholder = "Search Manga";
+  }
+  if (searchinput.value === "") {getlist();} else {search();}
+}
 //Click to list progress
 function listprogress() {
     var list = document.querySelectorAll("li:nth-child(3)");
@@ -364,10 +397,11 @@ function filterAll() {
     set(stopDiv, {style: {display: "flex"}});
     set(button4, {style: {visibility: "visible"}})
       delay(1000).then(() => replacedivloop());}
-  else {window.alert("Error: Anime list is empty. Please search or watch anime.")}
+  else {window.alert("Error: list is empty. Please add anime or manga.")}
 }
 
 //Filter Activity
+
 function replacedivloop(el) {
     interval = setTimeout(function() {
         var loop = 0;
@@ -399,7 +433,6 @@ function replacedivloop(el) {
                 }
             }
         }
-
         if (result == 0) {
             if (trimArray1[val] == null) {
                 if (onMainDiv) {
@@ -447,10 +480,18 @@ function replacedivloop(el) {
                     }
                 }
             }
+          if(anime){
             if (entryhref !== null && entryhref.indexOf("/manga/") > -1) {
                 entry.innerHTML = "";
                 entry.classList.remove('activity-entry');
             }
+          }
+          else{
+            if (entryhref !== null && entryhref.indexOf("/anime/") > -1) {
+                entry.innerHTML = "";
+                entry.classList.remove('activity-entry');
+            }
+          }
             if (onMainDiv) {
                 result = 0;
                 document.getElementById("ResultDivInside").append(entry);
@@ -510,16 +551,20 @@ const delay = (delayInms) => {
     return new Promise(resolve => setTimeout(resolve, delayInms));
 }
 function getlist() {
+  if (searchinput.value == "") {animedataDiv.innerHTML = "";} else {return}
   if(liststatus === "CURRENT"){
   button10.classList.toggle("btn-active", true);} else { button10.classList.toggle("btn-active", false);}
   if(liststatus === "COMPLETED"){
   button9.classList.toggle("btn-active", true);} else { button9.classList.toggle("btn-active", false);}
   if(liststatus === "PLANNING"){
   button11.classList.toggle("btn-active", true);} else { button11.classList.toggle("btn-active", false);}
+  let listtype="ANIME";
+  if(!anime){listtype="MANGA";}
+
     var query = `query($name:String!,$listType:MediaType,$listStatus:MediaListStatus){
     MediaListCollection(userName:$name,type:$listType,status:$listStatus){lists{entries{... mediaListEntry}}}}
     fragment mediaListEntry on MediaList{mediaId media {type id siteUrl title {romaji}coverImage {large}}}`;
-    var variables = {name: username,listType: "ANIME",listStatus: liststatus};
+    var variables = {name: username,listType: listtype,listStatus: liststatus};
     var url = 'https://graphql.anilist.co',
         options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},
                    body: JSON.stringify({query: query,variables: variables,})};
@@ -527,7 +572,6 @@ function getlist() {
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
 
     function handleData(data) {
-        animedataDiv.innerHTML = "";
       if(data.data.MediaListCollection.lists.length > 0){
         data.data.MediaListCollection.lists[0].entries.forEach(animedata => {
           let aimg = create("a", {class: "animedataimg",href:animedata.media.siteUrl,style: {backgroundImage: "url(" + animedata.media.coverImage.large + ")"}});
@@ -580,13 +624,15 @@ function getFollowing() {
     function handleError(error) {console.error(error);}}
 }
 function search() {
-    var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: ANIME) {type id siteUrl title { romaji } coverImage { large  }}}}`;
+   if(!anime){
+  var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: MANGA) {type id siteUrl title { romaji } coverImage { large  }}}}`;}
+  else {var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: ANIME) {type id siteUrl title { romaji } coverImage { large  }}}}`;}
     var variables = {search: searchinput.value,page: 1};
     var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},body: JSON.stringify({query: query,variables: variables})};
     fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
 
-    function handleData(data) {
+   function handleData(data) {
       if (searchinput.value == "") {getlist();} else {animedataDiv.innerHTML = "";}
       data.data.Page.media.forEach(animedata => {
         let aimg=create("a",{class:"animedataimg",href:animedata.siteUrl,style:{backgroundImage:"url("+animedata.coverImage.large+")"}});
