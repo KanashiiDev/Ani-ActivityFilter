@@ -3,6 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
+// @grant       none
 // @version     1.0.2
 // @author      KanashiiDev
 // @description Filters users anime/manga activities.
@@ -239,7 +240,7 @@ var oldHref = document.location.href;
 interval = null;
 var liststatus = "CURRENT";
 var blacklistarray = [];
-var anime = true;
+var animeswitch = true;
 // Create Function
 //create("element", {class:"", id:""},'text');
 function create(tag, attrs, html) {
@@ -289,7 +290,7 @@ function hideUserCheck() {hideUser = !hideUser;localStorage.setItem("hideUser", 
 function getSettings() {notlikedbtn.classList.toggle("btn-active", notLiked);resultbtn.classList.toggle("btn-active", onMainDiv);hideuserbtn.classList.toggle("btn-active", hideUser);}
 
 //Create Buttons
-let switchbutton=create("button",{class:"mainbtns",id:"switchbtn"},'<p>'+"Anime"+'</p>'+"/"+'<p>'+"Manga"+'</p>');switchbutton.onclick=()=>{anime = !anime; switchAnimeManga()};
+let switchbutton=create("button",{class:"mainbtns",id:"switchbtn"},'<p>'+"Anime"+'</p>'+"/"+'<p>'+"Manga"+'</p>');switchbutton.onclick=()=>{animeswitch = !animeswitch; switchAnimeManga()};
 let button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Activity Filter");button.onclick=()=>{createDiv()};
 let button2=create("button",{class:"mainbtns",id:"closebtn"},"Close");button2.onclick=()=>{closeDiv()};
 let button3=create("button",{class:"mainbtns",id:"filterallbtn"},"Filter All");button3.onclick=()=>{clearInterval(interval),filterAll()};
@@ -355,7 +356,7 @@ function closeDiv() {
     active = false;
 }
 function switchAnimeManga(){
-  if(anime)
+  if(animeswitch)
     {switchbutton.children[0].style.color="rgb(var(--color-blue))";
      switchbutton.children[1].style.color="";
      button9.innerText = "Completed Anime";
@@ -371,7 +372,7 @@ function switchAnimeManga(){
     button11.innerText = "Planning Manga";
     searchinput.placeholder = "Search Manga";
   }
-  if (searchinput.value === "") {getlist();} else {search();}
+  if (searchinput.value.length <1 ) {getlist();} else {search();}
 }
 //Click to list progress
 function listprogress() {
@@ -480,7 +481,7 @@ function replacedivloop(el) {
                     }
                 }
             }
-          if(anime){
+          if(animeswitch){
             if (entryhref !== null && entryhref.indexOf("/manga/") > -1) {
                 entry.innerHTML = "";
                 entry.classList.remove('activity-entry');
@@ -559,7 +560,7 @@ function getlist() {
   if(liststatus === "PLANNING"){
   button11.classList.toggle("btn-active", true);} else { button11.classList.toggle("btn-active", false);}
   let listtype="ANIME";
-  if(!anime){listtype="MANGA";}
+  if(!animeswitch){listtype="MANGA";}
 
     var query = `query($name:String!,$listType:MediaType,$listStatus:MediaListStatus){
     MediaListCollection(userName:$name,type:$listType,status:$listStatus){lists{entries{... mediaListEntry}}}}
@@ -624,7 +625,7 @@ function getFollowing() {
     function handleError(error) {console.error(error);}}
 }
 function search() {
-   if(!anime){
+   if(!animeswitch){
   var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: MANGA) {type id siteUrl title { romaji } coverImage { large  }}}}`;}
   else {var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: ANIME) {type id siteUrl title { romaji } coverImage { large  }}}}`;}
     var variables = {search: searchinput.value,page: 1};
