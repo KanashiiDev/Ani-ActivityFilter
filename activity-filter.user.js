@@ -3,8 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @grant       none
-// @version     1.0.2
+// @version     1.0.3
 // @author      KanashiiDev
 // @description Filters users anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
@@ -288,7 +287,6 @@ function hideUserCheck() {hideUser = !hideUser;localStorage.setItem("hideUser", 
 }
 //Get Saved Settings
 function getSettings() {notlikedbtn.classList.toggle("btn-active", notLiked);resultbtn.classList.toggle("btn-active", onMainDiv);hideuserbtn.classList.toggle("btn-active", hideUser);}
-
 //Create Buttons
 let switchbutton=create("button",{class:"mainbtns",id:"switchbtn"},'<p>'+"Anime"+'</p>'+"/"+'<p>'+"Manga"+'</p>');switchbutton.onclick=()=>{animeswitch = !animeswitch; switchAnimeManga()};
 let button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Activity Filter");button.onclick=()=>{createDiv()};
@@ -331,11 +329,12 @@ function createDiv() {
         $(ResultDiv).insertAfter(".maindiv");
         searchinput.value = "";
         getSettings();
+        animeswitch = true;
+        switchAnimeManga();
         let activitiesidarray = window.localStorage.getItem('blockarray');
         if(activitiesidarray !== null) {
         let x = activitiesidarray.split(/[.,!,?]/);
         blacklistarray = x;
-        switchAnimeManga();
     }
     };
     if (!active) {closeDiv();}
@@ -372,7 +371,7 @@ function switchAnimeManga(){
     button11.innerText = "Planning Manga";
     searchinput.placeholder = "Search Manga";
   }
-  if (searchinput.value.length <1 ) {getlist();} else {search();}
+  if (searchinput.value === "") {getlist();} else {search();}
 }
 //Click to list progress
 function listprogress() {
@@ -561,13 +560,12 @@ function getlist() {
   button11.classList.toggle("btn-active", true);} else { button11.classList.toggle("btn-active", false);}
   let listtype="ANIME";
   if(!animeswitch){listtype="MANGA";}
-
     var query = `query($name:String!,$listType:MediaType,$listStatus:MediaListStatus){
-    MediaListCollection(userName:$name,type:$listType,status:$listStatus){lists{entries{... mediaListEntry}}}}
+    MediaListCollection(userName:$name,type:$listType,status:$listStatus,sort:MEDIA_TITLE_ROMAJI){lists{entries{... mediaListEntry}}}}
     fragment mediaListEntry on MediaList{mediaId media {type id siteUrl title {romaji}coverImage {large}}}`;
     var variables = {name: username,listType: listtype,listStatus: liststatus};
     var url = 'https://graphql.anilist.co',
-        options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},
+        options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json'},
                    body: JSON.stringify({query: query,variables: variables,})};
     fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
@@ -601,7 +599,7 @@ function getFollowing() {
       var query = `query ($id: Int!, $page: Int) {Page (page: $page) {pageInfo{currentPage hasNextPage}
   following(userId: $id, sort:USERNAME) {name avatar{medium} siteUrl}}}`;
     var variables = {id:userid,page:page};
-    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},
+    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json'},
             body: JSON.stringify({query: query,variables: variables})};
     fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
@@ -629,7 +627,7 @@ function search() {
   var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: MANGA) {type id siteUrl title { romaji } coverImage { large  }}}}`;}
   else {var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: ANIME) {type id siteUrl title { romaji } coverImage { large  }}}}`;}
     var variables = {search: searchinput.value,page: 1};
-    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json',},body: JSON.stringify({query: query,variables: variables})};
+    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json'},body: JSON.stringify({query: query,variables: variables})};
     fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
 
