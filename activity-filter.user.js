@@ -3,7 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.0.3
+// @version     1.0.4
 // @author      KanashiiDev
 // @description Filters users anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
@@ -190,6 +190,9 @@ var styles = `
     -ms-flex-positive:1;
         flex-grow:1
     }
+    .actdiv{
+    margin-bottom:15px;
+    }
     .blacklistDiv,
    .animedataDiv,
    .ResultDivInside {
@@ -303,6 +306,7 @@ let button11=create("button",{class:"mainbtns",id:"planningbtn"},"Planning ");bu
 let button12=create("button",{class:"mainbtns",id:"blacklistbtn",style: {position:"absolute",right:"10px"}},"Blacklist");button12.onclick=()=>{toggleBlocklist()};
 let searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinput.onkeyup=()=>{search()};searchinput.placeholder = "Search";
 let blacklistDiv = create("div", {class: "blacklistDiv",style: {display:"none"}});
+let activityDiv = create("div", {class: "activityDiv",style: {display:"block"}});
 //Create MainDiv
 function createDiv() {
     listprogress(); active = !active;
@@ -393,16 +397,20 @@ function filterAll() {
         })
     filterall = true;
     listprogress();
-    set(buttonsDiv, {style: {pointerEvents: "none"}})
+    set(buttonsDiv, {style: {pointerEvents: "none"}});
     set(stopDiv, {style: {display: "flex"}});
-    set(button4, {style: {visibility: "visible"}})
+    set(button4, {style: {visibility: "visible"}});
       delay(1000).then(() => replacedivloop());}
-  else {window.alert("Error: list is empty. Please add anime or manga.")}
+  else {window.alert("Error:The list is empty. Please add anime or manga.")}
 }
 
 //Filter Activity
-
 function replacedivloop(el) {
+  if(!onMainDiv){
+  let activitydiv = document.querySelector("#app > div.page-content > div > div > div.activity-feed-wrap > div.activity-edit");
+  activitydiv.append(activityDiv)
+  let scroller = document.querySelector("#app > div.page-content > div > div > div.activity-feed-wrap > div.scroller");
+  set(scroller, {style: {top: "0",position:"fixed",height:"10vh",visibility:"hidden"}});}
     interval = setTimeout(function() {
         var loop = 0;
         var result = 0;
@@ -435,10 +443,8 @@ function replacedivloop(el) {
         }
         if (result == 0) {
             if (trimArray1[val] == null) {
-                if (onMainDiv) {
-                    window.scrollTo(0, 100);
-                    window.scrollTo(0, 0);
-                }
+              window.scrollTo(window.scrollX, window.scrollY - 1);
+              window.scrollTo(window.scrollX, window.scrollY + 1);
                 val = 0;
                 $(".load-more").click();
             } else {
@@ -500,7 +506,10 @@ function replacedivloop(el) {
                 } else {
                     set(ResultDiv, {style: {display: "none"}});
                 }
-            }
+            } else {result = 0;
+                    entry.classList.remove('activity-entry');
+                    entry.classList.add('actdiv');
+                   activityDiv.append(entry);}
             val++;
         }
         loop++;
@@ -523,7 +532,7 @@ function replacedivloop(el) {
                 }
             }
         }
-    }, 25)
+    }, 50)
 }
 
 //refresh activity list
