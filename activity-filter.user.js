@@ -207,7 +207,7 @@ var styleSheet = document.createElement("style")
 styleSheet.innerText = styles
 document.head.appendChild(styleSheet)
 
-//get username
+//Get Username
 let auth;
 let user = '';
 let userid = 0;
@@ -277,17 +277,18 @@ function set(tag, attrs, html) {
     ele.innerHTML = html;
   return ele;
 }
-//Check - NotLiked
+const delay = (delayInms) => {
+    return new Promise(resolve => setTimeout(resolve, delayInms));
+}
+
 notLiked = JSON.parse(localStorage.getItem("notLiked"));
 function notLikedCheck() {notLiked = !notLiked; localStorage.setItem("notLiked", notLiked); getSettings();}
-//Check - onMainDiv
 onMainDiv = JSON.parse(localStorage.getItem("onMainDiv"));
 function onMainDivCheck() {onMainDiv = !onMainDiv;localStorage.setItem("onMainDiv", onMainDiv);getSettings();}
-//Check - hideUser
 hideUser = JSON.parse(localStorage.getItem("hideUser"));
 function hideUserCheck() {hideUser = !hideUser;localStorage.setItem("hideUser", hideUser);getSettings();
 }
-//Get Saved Settings
+
 function getSettings() {
 notlikedbtn.classList.toggle("btn-active", notLiked);resultbtn.classList.toggle("btn-active", onMainDiv);hideuserbtn.classList.toggle("btn-active", hideUser);
 let activitiesidarray = window.localStorage.getItem('blockarray');if(activitiesidarray !== null) {let ars = activitiesidarray.split(/[.,!,?]/);blacklistarray = ars;}
@@ -296,7 +297,7 @@ for (i=0;i<3;i++) {if (liststatus.indexOf('CURRENT') === -1) {button10.classList
 if (liststatus.indexOf('COMPLETED') === -1) {button9.classList.toggle("btn-active", false);} else { button9.classList.toggle("btn-active", true);}
 if (liststatus.indexOf('PLANNING') === -1) {button11.classList.toggle("btn-active", false);} else { button11.classList.toggle("btn-active", true);}}
 }
-//Create Buttons
+
 let switchbutton=create("button",{class:"mainbtns",id:"switchbtn"},'<p>'+"Anime"+'</p>'+"/"+'<p>'+"Manga"+'</p>');switchbutton.onclick=()=>{animeswitch = !animeswitch; switchAnimeManga()};
 let button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Activity Filter");button.onclick=()=>{createDiv()};
 let button2=create("button",{class:"mainbtns",id:"closebtn"},"Close");button2.onclick=()=>{closeDiv()};
@@ -313,7 +314,17 @@ let button12=create("button",{class:"mainbtns",id:"blacklistbtn",style: {positio
 let searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinput.onkeyup=()=>{search()};searchinput.placeholder = "Search";
 let blacklistDiv = create("div", {class: "blacklistDiv",style: {display:"none"}});
 let activityDiv = create("div", {class: "activityDiv",style: {display:"block"}});
-//Create MainDiv
+
+start();
+function start() {
+ if (!/^\/(home)\/?([\w-]+)?\/?$/.test(location.pathname)) {return}
+    let filters = document.querySelector(".el-dropdown-menu");
+    if (!filters) {setTimeout(start, 100);return}
+      {
+        filters.appendChild(button);
+      }
+}
+
 function createDiv() {
     listprogress(); active = !active;
     if (document.querySelector("li.el-dropdown-menu__item.active")) {
@@ -345,7 +356,6 @@ function createDiv() {
     if (!active) {closeDiv();}
 }
 
-//Close MainDiv
 function closeDiv() {
     clearInterval(interval);
     var list = document.querySelectorAll("li:nth-child(1)");
@@ -378,7 +388,7 @@ function switchAnimeManga(){
   }
   if (searchinput.value === "") {getlist();} else {search();}
 }
-//Click to list progress
+
 function listprogress() {
     var list = document.querySelectorAll("li:nth-child(3)");
     for (var x = 0; x < list.length; x++) {
@@ -388,7 +398,6 @@ function listprogress() {
     }
 }
 
-//Filter All Button
 function filterAll() {
     var elem = document.querySelectorAll(".animedata")
     if(elem.length > 0) {
@@ -405,7 +414,6 @@ function filterAll() {
   else {window.alert("Error:The list is empty. Please add anime or manga.")}
 }
 
-//Filter Activity
 function replacedivloop(el) {
   if(!onMainDiv){
   let activitydiv = document.querySelector("#app > div.page-content > div > div > div.activity-feed-wrap > div.activity-edit");
@@ -536,7 +544,6 @@ function replacedivloop(el) {
     }, 50)
 }
 
-//refresh activity list
 function refresh() {
     stop();
     set(ResultDiv, {style: {display: "none"}});
@@ -544,7 +551,6 @@ function refresh() {
     getlist();
 }
 
-//stop
 function stop() {
     filterall = false;
     clearInterval(interval);
@@ -557,10 +563,6 @@ function stop() {
     set(stopDiv, {style: {display: "none"}});
 }
 
-//Delay
-const delay = (delayInms) => {
-    return new Promise(resolve => setTimeout(resolve, delayInms));
-}
 function getlist() {
   if (searchinput.value == "") {animedataDiv.innerHTML = "";} else {return}
   let listcurrent = "CURRENT";
@@ -593,6 +595,7 @@ function getlist() {
     }
     function handleError(error) {console.error(error);}}
 }
+
 function toggleBlocklist(){
   if(blacklistDiv.style.display === "none"){
     blacklistDiv.style.display = "grid";
@@ -601,6 +604,7 @@ function toggleBlocklist(){
   }
   else{blacklistDiv.style.display = "none"}
 };
+
 function getFollowing() {
   recall();
   var page=1;
@@ -631,6 +635,7 @@ function getFollowing() {
     }
     function handleError(error) {console.error(error);}}
 }
+
 function search() {
    if(!animeswitch){
   var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: MANGA) {type id siteUrl title { romaji } coverImage { large  }}}}`;}
@@ -660,6 +665,7 @@ function search() {
     }
     function handleError(error) {console.error(error);}
 }
+
 function e(){}
 function animedataclick() {
     each('.animedata', function(el) {
@@ -681,6 +687,7 @@ function animedataclick() {
         });
     };
 }
+
 function blacklistcheck(){
   let userdata = document.querySelectorAll(".userdata")
   if (!userdata) {setTimeout(blacklistcheck, 500);return}
@@ -712,32 +719,25 @@ function blacklistclick() {
         });
     };
 }
-//Remove Results if list refreshed
-window.onclick = function() {
-    if (active && ResultDiv.innerText == 'Results\n') set(ResultDiv, {style: {display: "none"}});
-}
 
-//reappend button
-window.onpageshow = function() {
-  if (document.location.href === "https://anilist.co/home") {
-     document.querySelector(".el-dropdown-menu").appendChild(button);
-   }
+window.addEventListener('load', function() {
     var bodyList = document.querySelector("body")
     var observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (oldHref != document.location.href) {
                 oldHref = document.location.href;
                 active = false;
-                if (oldHref === "https://anilist.co/home") {
-                  document.querySelector(".el-dropdown-menu").appendChild(button);
-                  set(button, {class:"el-dropdown-menu__item"});
-                }
-              else {
-                clearInterval(interval);
-              }
-            }
-        });
+                start();
+                set(button, {class:"el-dropdown-menu__item"});
+            }});
     });
-    var config = {childList: true,subtree: true};
+    var config = {
+        childList: true,
+        subtree: true
+    };
     observer.observe(bodyList, config);
+});
+
+window.onclick = function() {
+    if (active && ResultDiv && ResultDiv.innerText == 'Results\n') set(ResultDiv, {style: {display: "none"}});
 }
