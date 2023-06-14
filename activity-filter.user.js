@@ -3,7 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.0.4
+// @version     1.0.5
 // @author      KanashiiDev
 // @description Filters users anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
@@ -211,7 +211,6 @@ document.head.appendChild(styleSheet)
 let auth;
 let user = '';
 let userid = 0;
-
 try {
     auth = JSON.parse(localStorage.getItem('auth'));
 } catch (err) {
@@ -240,7 +239,7 @@ var active = false;
 var filterall = false;
 var oldHref = document.location.href;
 interval = null;
-var liststatus = "CURRENT";
+var liststatus = [];
 var blacklistarray = [];
 var animeswitch = true;
 // Create Function
@@ -289,7 +288,14 @@ hideUser = JSON.parse(localStorage.getItem("hideUser"));
 function hideUserCheck() {hideUser = !hideUser;localStorage.setItem("hideUser", hideUser);getSettings();
 }
 //Get Saved Settings
-function getSettings() {notlikedbtn.classList.toggle("btn-active", notLiked);resultbtn.classList.toggle("btn-active", onMainDiv);hideuserbtn.classList.toggle("btn-active", hideUser);}
+function getSettings() {
+notlikedbtn.classList.toggle("btn-active", notLiked);resultbtn.classList.toggle("btn-active", onMainDiv);hideuserbtn.classList.toggle("btn-active", hideUser);
+let activitiesidarray = window.localStorage.getItem('blockarray');if(activitiesidarray !== null) {let ars = activitiesidarray.split(/[.,!,?]/);blacklistarray = ars;}
+let listarray = window.localStorage.getItem('liststatus');if(listarray === null || listarray === '') {listarray = [];}else{let ars2 = listarray.split(/[.,!,?]/);liststatus = ars2;}
+for (i=0;i<3;i++) {if (liststatus.indexOf('CURRENT') === -1) {button10.classList.toggle("btn-active", false);}else { button10.classList.toggle("btn-active", true);}
+if (liststatus.indexOf('COMPLETED') === -1) {button9.classList.toggle("btn-active", false);} else { button9.classList.toggle("btn-active", true);}
+if (liststatus.indexOf('PLANNING') === -1) {button11.classList.toggle("btn-active", false);} else { button11.classList.toggle("btn-active", true);}}
+}
 //Create Buttons
 let switchbutton=create("button",{class:"mainbtns",id:"switchbtn"},'<p>'+"Anime"+'</p>'+"/"+'<p>'+"Manga"+'</p>');switchbutton.onclick=()=>{animeswitch = !animeswitch; switchAnimeManga()};
 let button=create("li",{class:"el-dropdown-menu__item mainbtn",id:"Watching"},"Activity Filter");button.onclick=()=>{createDiv()};
@@ -300,9 +306,9 @@ let button5=create("button",{class:"mainbtns",id:"refreshbtn"},"Refresh");button
 let button6=create("button",{class:"mainbtns",id:"resultbtn"},"Move Results");button6.onclick=()=>{onMainDivCheck(),$(".feed-type-toggle > div.active").click()};
 let button7=create("button",{class:"mainbtns",id:"notlikedbtn"},"Not Liked");button7.onclick=()=>{notLikedCheck(),$(".feed-type-toggle > div.active").click()};
 let button8=create("button",{class:"mainbtns",id:"hideuserbtn"},"Hide "+username);button8.onclick=()=>{hideUserCheck(),$(".feed-type-toggle > div.active").click()};
-let button9=create("button",{class:"mainbtns",id:"currentbtn"},"Completed ");button9.onclick=()=>{if(liststatus!=="COMPLETED"){liststatus = "COMPLETED";getlist()}};
-let button10=create("button",{class:"mainbtns",id:"completedbtn"},"Current ");button10.onclick=()=>{if(liststatus!=="CURRENT"){liststatus = "CURRENT";getlist()}};
-let button11=create("button",{class:"mainbtns",id:"planningbtn"},"Planning ");button11.onclick=()=>{if(liststatus!=="PLANNING"){liststatus = "PLANNING";getlist()}};
+let button9=create("button",{class:"mainbtns",id:"currentbtn"},"Completed ");button9.onclick=()=>{liststatus.indexOf("COMPLETED") === -1 ? liststatus.push("COMPLETED") : liststatus.splice(liststatus.indexOf("COMPLETED"), 1);localStorage.setItem("liststatus", [(liststatus)]);getSettings();getlist()};
+let button10=create("button",{class:"mainbtns",id:"completedbtn"},"Current ");button10.onclick=()=>{liststatus.indexOf("CURRENT") === -1 ? liststatus.push("CURRENT") : liststatus.splice(liststatus.indexOf("CURRENT"), 1);localStorage.setItem("liststatus", [(liststatus)]);getSettings();getlist()};
+let button11=create("button",{class:"mainbtns",id:"planningbtn"},"Planning ");button11.onclick=()=>{liststatus.indexOf("PLANNING") === -1 ? liststatus.push("PLANNING") : liststatus.splice(liststatus.indexOf("PLANNING"), 1);localStorage.setItem("liststatus", [(liststatus)]);getSettings();getlist()};
 let button12=create("button",{class:"mainbtns",id:"blacklistbtn",style: {position:"absolute",right:"10px"}},"Blacklist");button12.onclick=()=>{toggleBlocklist()};
 let searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinput.onkeyup=()=>{search()};searchinput.placeholder = "Search";
 let blacklistDiv = create("div", {class: "blacklistDiv",style: {display:"none"}});
@@ -335,12 +341,7 @@ function createDiv() {
         getSettings();
         animeswitch = true;
         switchAnimeManga();
-        let activitiesidarray = window.localStorage.getItem('blockarray');
-        if(activitiesidarray !== null) {
-        let x = activitiesidarray.split(/[.,!,?]/);
-        blacklistarray = x;
     }
-    };
     if (!active) {closeDiv();}
 }
 
@@ -540,6 +541,7 @@ function refresh() {
     stop();
     set(ResultDiv, {style: {display: "none"}});
     $(".feed-type-toggle > div.active").click();
+    getlist();
 }
 
 //stop
@@ -561,25 +563,23 @@ const delay = (delayInms) => {
 }
 function getlist() {
   if (searchinput.value == "") {animedataDiv.innerHTML = "";} else {return}
-  if(liststatus === "CURRENT"){
-  button10.classList.toggle("btn-active", true);} else { button10.classList.toggle("btn-active", false);}
-  if(liststatus === "COMPLETED"){
-  button9.classList.toggle("btn-active", true);} else { button9.classList.toggle("btn-active", false);}
-  if(liststatus === "PLANNING"){
-  button11.classList.toggle("btn-active", true);} else { button11.classList.toggle("btn-active", false);}
+  let listcurrent = "CURRENT";
   let listtype="ANIME";
   if(!animeswitch){listtype="MANGA";}
+  liststatus.forEach(data => {listcurrent = data;listquery();})
+  function listquery(){
     var query = `query($name:String!,$listType:MediaType,$listStatus:MediaListStatus){
     MediaListCollection(userName:$name,type:$listType,status:$listStatus,sort:MEDIA_TITLE_ROMAJI){lists{entries{... mediaListEntry}}}}
     fragment mediaListEntry on MediaList{mediaId media {type id siteUrl title {romaji}coverImage {large}}}`;
-    var variables = {name: username,listType: listtype,listStatus: liststatus};
-    var url = 'https://graphql.anilist.co',
+    var variables = {name: username,listType: listtype,listStatus: listcurrent};
+    let url = 'https://graphql.anilist.co',
         options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json'},
-                   body: JSON.stringify({query: query,variables: variables,})};
+                   body: JSON.stringify({query: query,variables: variables})};
     fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
 
     function handleData(data) {
+
       if(data.data.MediaListCollection.lists.length > 0){
         data.data.MediaListCollection.lists[0].entries.forEach(animedata => {
           let aimg = create("a", {class: "animedataimg",href:animedata.media.siteUrl,style: {backgroundImage: "url(" + animedata.media.coverImage.large + ")"}});
@@ -591,7 +591,7 @@ function getlist() {
         })}
         animedataclick();
     }
-    function handleError(error) {console.error(error);}
+    function handleError(error) {console.error(error);}}
 }
 function toggleBlocklist(){
   if(blacklistDiv.style.display === "none"){
@@ -608,7 +608,7 @@ function getFollowing() {
       var query = `query ($id: Int!, $page: Int) {Page (page: $page) {pageInfo{currentPage hasNextPage}
   following(userId: $id, sort:USERNAME) {name avatar{medium} siteUrl}}}`;
     var variables = {id:userid,page:page};
-    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json'},
+    let url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json'},
             body: JSON.stringify({query: query,variables: variables})};
     fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
@@ -636,7 +636,7 @@ function search() {
   var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: MANGA) {type id siteUrl title { romaji } coverImage { large  }}}}`;}
   else {var query = `query ($id: Int, $page: Int, $search: String) {Page (page: $page) {media (id: $id, search: $search, type: ANIME) {type id siteUrl title { romaji } coverImage { large  }}}}`;}
     var variables = {search: searchinput.value,page: 1};
-    var url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json'},body: JSON.stringify({query: query,variables: variables})};
+    let url = 'https://graphql.anilist.co',options = {method: 'POST',headers: {'Content-Type': 'application/json','Accept': 'application/json'},body: JSON.stringify({query: query,variables: variables})};
     fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
 
