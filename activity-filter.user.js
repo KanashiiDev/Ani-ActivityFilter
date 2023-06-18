@@ -3,7 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.0.5
+// @version     1.0.6
 // @author      KanashiiDev
 // @description Filters users anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
@@ -148,7 +148,7 @@ var styles = `
     }
     .animedataDiv {
     display: grid;
-    max-height: 265px;
+    max-height: 250px;
     overflow-y: scroll;
     padding-top: 5px
     }
@@ -317,12 +317,13 @@ let activityDiv = create("div", {class: "activityDiv",style: {display:"block"}})
 
 start();
 function start() {
- if (!/^\/(home)\/?([\w-]+)?\/?$/.test(location.pathname)) {return}
-    let filters = document.querySelector(".el-dropdown-menu");
-    if (!filters) {setTimeout(start, 100);return}
-      {
-        filters.appendChild(button);
-      }
+  if (!/^\/(home|user)\/?([\w-]+)?\/?$/.test(location.pathname)) {return}
+  let filters = document.querySelectorAll(".el-dropdown-menu");
+  if (!filters) {setTimeout(start, 100);return}
+  for (var x = 0; x < filters.length; x++) {
+    if (filters[x].children[0].innerText.trim() == "All") {
+      filters[x].click();
+      filters[x].appendChild(button);}}
 }
 
 function createDiv() {
@@ -333,7 +334,9 @@ function createDiv() {
     if (active) {
         button.setAttribute("class", "el-dropdown-menu__item active");
           let listDiv = create("div", {class: "maindiv",id: "listDiv"}, '<div class="maindivheader"><b>'+button.innerText+'</b></div>');
-        const list = document.querySelector(".activity-feed-wrap + div");
+      if (/^\/(user)\/?([\w-]+)?\/?$/.test(location.pathname)) {
+        var list = document.querySelector(".activity-feed-wrap");}
+        else {var list = document.querySelector(".activity-feed-wrap + div");}
         list.insertBefore(listDiv, list.children[0]);
         document.querySelector("#listDiv > div").append(button12,switchbutton);
         let buttonsDiv=create("div",{class:"buttonsDiv",id:"buttonsDiv"});
@@ -347,7 +350,7 @@ function createDiv() {
         let ResultDiv=create("div",{class:"maindiv",id:"ResultDiv",style:{display:"none",maxHeight:"460px"}},"<b>Results</br></b>");
         let ResultDivInside=create("div",{class:"ResultDivInside",id:"ResultDivInside",style:{maxHeight:"400px"}});
         ResultDiv.appendChild(ResultDivInside);
-        $(ResultDiv).insertAfter(".maindiv");
+        $(ResultDiv).insertAfter(listDiv);
         searchinput.value = "";
         getSettings();
         animeswitch = true;
@@ -361,9 +364,7 @@ function closeDiv() {
     var list = document.querySelectorAll("li:nth-child(1)");
     for (var x = 0; x < list.length; x++) {
         if (list[x].innerText.trim() == "All") {
-            list[x].click();
-        }
-    }
+            list[x].click();}}
     button.setAttribute("class", "el-dropdown-menu__item");
     listDiv.remove();
     ResultDiv.remove();
@@ -390,21 +391,26 @@ function switchAnimeManga(){
 }
 
 function listprogress() {
+   if (/^\/(home)\/?([\w-]+)?\/?$/.test(location.pathname)) {
     var list = document.querySelectorAll("li:nth-child(3)");
     for (var x = 0; x < list.length; x++) {
         if (list[x].innerText.trim() == "List Progress") {
-            list[x].click();
-        }
-    }
+            list[x].click();}}
+}
+   if (/^\/(user)\/?([\w-]+)?\/?$/.test(location.pathname)) {
+    var list = document.querySelectorAll("li:nth-child(4)");
+    for (var x = 0; x < list.length; x++) {
+        if (list[x].innerText.trim() == "List") {
+            list[x].click();}}
+   }
 }
 
 function filterAll() {
-    var elem = document.querySelectorAll(".animedata")
+    var elem = document.querySelectorAll(".animedatalink")
     if(elem.length > 0) {
         elem.forEach(animeinfo => {
             mainarray.push(animeinfo.innerText);
-            mainarray.join("");
-        })
+            mainarray.join("");})
     filterall = true;
     listprogress();
     set(buttonsDiv, {style: {pointerEvents: "none"}});
@@ -416,9 +422,9 @@ function filterAll() {
 
 function replacedivloop(el) {
   if(!onMainDiv){
-  let activitydiv = document.querySelector("#app > div.page-content > div > div > div.activity-feed-wrap > div.activity-edit");
+  let activitydiv = document.querySelector("div.activity-feed-wrap > div.activity-edit");
   activitydiv.append(activityDiv)
-  let scroller = document.querySelector("#app > div.page-content > div > div > div.activity-feed-wrap > div.scroller");
+  let scroller = document.querySelector("div.activity-feed-wrap > div.scroller");
   set(scroller, {style: {top: "0",position:"fixed",height:"10vh",visibility:"hidden"}});}
     interval = setTimeout(function() {
         var loop = 0;
@@ -509,16 +515,19 @@ function replacedivloop(el) {
           }
             if (onMainDiv) {
                 result = 0;
+                entry.classList.remove('activity-entry');
+                entry.classList.add('actdiv');
                 document.getElementById("ResultDivInside").append(entry);
                 if (ResultDiv.innerText.length > 10) {
                   set(ResultDiv, {style: {display: "grid"}});
                 } else {
-                    set(ResultDiv, {style: {display: "none"}});
+                set(ResultDiv, {style: {display: "none"}});
                 }
-            } else {result = 0;
-                    entry.classList.remove('activity-entry');
-                    entry.classList.add('actdiv');
-                   activityDiv.append(entry);}
+            } else {
+                result = 0;
+                entry.classList.remove('activity-entry');
+                entry.classList.add('actdiv');
+                activityDiv.append(entry);}
             val++;
         }
         loop++;
@@ -547,7 +556,7 @@ function replacedivloop(el) {
 function refresh() {
     stop();
     set(ResultDiv, {style: {display: "none"}});
-    $(".feed-type-toggle > div.active").click();
+    listprogress();
     getlist();
 }
 
@@ -581,19 +590,20 @@ function getlist() {
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
 
     function handleData(data) {
-
       if(data.data.MediaListCollection.lists.length > 0){
         data.data.MediaListCollection.lists[0].entries.forEach(animedata => {
           let aimg = create("a", {class: "animedataimg",href:animedata.media.siteUrl,style: {backgroundImage: "url(" + animedata.media.coverImage.large + ")"}});
           let a = create("a", {class: "animedata",id: (animedata.media.id)});
+          let alink = create("a", {class: "animedatalink",id: (animedata.media.id)});
           aimg.before(a);
-          a.innerText = (animedata.media.title.romaji);
+          alink.innerText = (animedata.media.title.romaji);
           animedataDiv.appendChild(a);
+          a.appendChild(alink);
           a.appendChild(aimg);
         })}
-        animedataclick();
     }
     function handleError(error) {console.error(error);}}
+delay(500).then(() => animedataclick());
 }
 
 function toggleBlocklist(){
@@ -631,7 +641,6 @@ function getFollowing() {
 			recall();
 		}
       blacklistclick();
-      blacklistcheck();
     }
     function handleError(error) {console.error(error);}}
 }
@@ -666,9 +675,8 @@ function search() {
     function handleError(error) {console.error(error);}
 }
 
-function e(){}
 function animedataclick() {
-    each('.animedata', function(el) {
+    each('.animedatalink', function(el) {
         el.addEventListener('click', function(e) {
             listprogress();
             refresh();
@@ -676,7 +684,6 @@ function animedataclick() {
             set(stopDiv, {style: {display: "flex"}});
             set(button4, {style: {visibility: "visible"}})
               set(buttonsDiv, {style: {pointerEvents: "none"}})
-            e.preventDefault();
         });
     });
     function each(el, callback) {
