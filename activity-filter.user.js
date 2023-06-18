@@ -659,9 +659,11 @@ function search() {
       data.data.Page.media.forEach(animedata => {
         let aimg=create("a",{class:"animedataimg",href:animedata.siteUrl,style:{backgroundImage:"url("+animedata.coverImage.large+")"}});
         let a=create("a",{class:"animedata",id:animedata.id});
+        let alink = create("a", {class: "animedatalink",id: (animedata.id)});
         aimg.before(a);
-        a.innerText = (animedata.title.romaji);
+        alink.innerText = (animedata.title.romaji);
         animedataDiv.appendChild(a);
+        a.appendChild(alink);
         a.appendChild(aimg);
         })
         var elem = document.querySelectorAll(".animedata")
@@ -670,7 +672,7 @@ function search() {
             mainarray.push(animeinfo.innerText);
             mainarray.join("");
         })
-        animedataclick();
+     animedataclick();
     }
     function handleError(error) {console.error(error);}
 }
