@@ -3,7 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.0.6
+// @version     1.0.7
 // @author      KanashiiDev
 // @description Filters users anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
@@ -315,14 +315,13 @@ let searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinp
 let blacklistDiv = create("div", {class: "blacklistDiv",style: {display:"none"}});
 let activityDiv = create("div", {class: "activityDiv",style: {display:"block"}});
 
-start();
 function start() {
   if (!/^\/(home|user)\/?([\w-]+)?\/?$/.test(location.pathname)) {return}
   let filters = document.querySelectorAll(".el-dropdown-menu");
-  if (!filters) {setTimeout(start, 100);return}
+  if (!filters) {setTimeout(start, 500);return}
+  setTimeout(start, 1000);
   for (var x = 0; x < filters.length; x++) {
-    if (filters[x].children[0].innerText.trim() == "All") {
-      filters[x].click();
+    if (filters[x].children[0].innerText.trim() === "All") {
       filters[x].appendChild(button);}}
 }
 
@@ -641,6 +640,7 @@ function getFollowing() {
 			recall();
 		}
       blacklistclick();
+      blacklistcheck();
     }
     function handleError(error) {console.error(error);}}
 }
@@ -672,7 +672,7 @@ function search() {
             mainarray.push(animeinfo.innerText);
             mainarray.join("");
         })
-     animedataclick();
+     animedataclick()
     }
     function handleError(error) {console.error(error);}
 }
@@ -730,6 +730,8 @@ function blacklistclick() {
 }
 
 window.addEventListener('load', function() {
+  active = false;
+  start();
     var bodyList = document.querySelector("body")
     var observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
