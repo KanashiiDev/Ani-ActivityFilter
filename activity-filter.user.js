@@ -3,7 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.0.8
+// @version     1.0.9
 // @author      KanashiiDev
 // @description Filters users anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
@@ -437,11 +437,12 @@ function filterAll() {
 }
 
 function replacedivloop(el) {
+  let scroller = document.querySelector("div.activity-feed-wrap > div.scroller");
+  scroller.style.cssText = 'position:fixed;top:0;visibility:hidden';
   if(!onMainDiv){
   let activitydiv = document.querySelector("div.activity-feed-wrap > div.activity-edit");
   activitydiv.append(activityDiv)
-  let scroller = document.querySelector("div.activity-feed-wrap > div.scroller");
-  set(scroller, {style: {top: "0",position:"fixed",height:"10vh",visibility:"hidden"}});}
+  }
     interval = setTimeout(function() {
         var loop = 0;
         var result = 0;
@@ -580,10 +581,12 @@ function stop() {
     filterall = false;
     clearInterval(interval);
     let ad = document.querySelectorAll(".animedata");
+    let scroller = document.querySelector("div.activity-feed-wrap > div.scroller");
     for (var x = 0; x < ad.length; x++) {
         set(buttonsDiv, {style: {pointerEvents: "auto"}})
         ad[x].classList.toggle("selected", false);
         set(ResultDivInside, {style: {background: 'rgb(var(--color-background))'}});
+      scroller.style.cssText = '';
     }
     set(stopDiv, {style: {display: "none"}});
 }
@@ -608,7 +611,7 @@ function getlist() {
                    body: JSON.stringify({query: query,variables: variables})};
     fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
-    
+
     function handleData(data) {
       let strArray = [];
         data.data.MediaListCollection.lists.forEach(list => {
