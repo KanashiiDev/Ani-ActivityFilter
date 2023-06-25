@@ -3,7 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.0.7
+// @version     1.0.8
 // @author      KanashiiDev
 // @description Filters users anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
@@ -184,6 +184,8 @@ var styles = `
     color: rgb(var(--color-text));
     }}
     #stopbtn{
+    height:30px;
+    text-transform: uppercase;
     margin-top:0;
     -webkit-box-flex:1;
     -webkit-flex-grow:1;
@@ -200,6 +202,21 @@ var styles = `
     mask-image: linear-gradient(to bottom, transparent 0, black var(--top-mask-size), black calc(100% - var(--bottom-mask-size)), transparent 100%);
     --bottom-mask-size: 10px;
     --top-mask-size: 10px
+    }
+    #animelist div:nth-child(1) b,
+    #animelist div:nth-child(2) b,
+    #animelist div:nth-child(3) b {
+    margin-top: 20px;
+    margin-bottom: 5px;
+    background: rgba(var(--color-background));
+    padding: 5px;
+    -webkit-border-radius: 5px;
+            border-radius: 5px;
+    display: block;
+    text-align: center
+    }
+    #animelist div:nth-child(1) b {
+    margin-top:3px
     }
 `
 //Add CSS
@@ -572,12 +589,16 @@ function stop() {
 }
 
 function getlist() {
+  let findDuplicates = arr => arr.filter((item, index) => arr.indexOf(item) !== index);
   if (searchinput.value == "") {animedataDiv.innerHTML = "";} else {return}
   let listcurrent = "CURRENT";
   let listtype="ANIME";
   if(!animeswitch){listtype="MANGA";}
-  liststatus.forEach(data => {listcurrent = data;listquery();})
+   let maindiv = create("div",{id:"animelist"});animedataDiv.appendChild(maindiv);
+  liststatus.forEach(function(data){wait++;listcurrent = data;listquery();});
   function listquery(){
+    let title = create("div",false, "<b>" + listcurrent + "</b>");maindiv.appendChild(title);
+    if(liststatus.length === 1){title.children[0].style.cssText ="display:none"}
     var query = `query($name:String!,$listType:MediaType,$listStatus:MediaListStatus){
     MediaListCollection(userName:$name,type:$listType,status:$listStatus,sort:MEDIA_TITLE_ROMAJI){lists{entries{... mediaListEntry}}}}
     fragment mediaListEntry on MediaList{mediaId media {type id siteUrl title {romaji}coverImage {large}}}`;
@@ -587,21 +608,26 @@ function getlist() {
                    body: JSON.stringify({query: query,variables: variables})};
     fetch(url, options).then(handleResponse).then(handleData).catch(handleError);
     function handleResponse(response) {return response.json().then(function(json) {return response.ok ? json : Promise.reject(json);});}
-
+    
     function handleData(data) {
-      if(data.data.MediaListCollection.lists.length > 0){
-        data.data.MediaListCollection.lists[0].entries.forEach(animedata => {
+      let strArray = [];
+        data.data.MediaListCollection.lists.forEach(list => {
+          list.entries.forEach(animedata => {
+          strArray.push(animedata.media.title.romaji);
+          let findDuplicates = arr => arr.filter((item, index) => arr.indexOf(item) !== index);
+          if(findDuplicates(strArray).length < 1){
           let aimg = create("a", {class: "animedataimg",href:animedata.media.siteUrl,style: {backgroundImage: "url(" + animedata.media.coverImage.large + ")"}});
           let a = create("a", {class: "animedata",id: (animedata.media.id)});
           let alink = create("a", {class: "animedatalink",id: (animedata.media.id)});
           aimg.before(a);
           alink.innerText = (animedata.media.title.romaji);
-          animedataDiv.appendChild(a);
+          title.appendChild(a);
           a.appendChild(alink);
-          a.appendChild(aimg);
-        })}
+          a.appendChild(aimg);}})
+        })
     }
-    function handleError(error) {console.error(error);}}
+    function handleError(error) {console.error(error);}
+}
 delay(500).then(() => animedataclick());
 }
 
