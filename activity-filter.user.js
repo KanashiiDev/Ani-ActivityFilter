@@ -595,7 +595,7 @@ function getlist() {
   let listtype="ANIME";
   if(!animeswitch){listtype="MANGA";}
    let maindiv = create("div",{id:"animelist"});animedataDiv.appendChild(maindiv);
-  liststatus.forEach(function(data){wait++;listcurrent = data;listquery();});
+  liststatus.forEach(function(data){listcurrent = data;listquery();});
   function listquery(){
     let title = create("div",false, "<b>" + listcurrent + "</b>");maindiv.appendChild(title);
     if(liststatus.length === 1){title.children[0].style.cssText ="display:none"}
