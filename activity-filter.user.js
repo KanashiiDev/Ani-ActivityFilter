@@ -1,11 +1,12 @@
 // ==UserScript==
-// @name        Activity Filter
+// @name        Anilist Activity Filter
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.0.9
+// @version     1.1.0
+// @license     GPL-3.0-or-later
 // @author      KanashiiDev
-// @description Filters users anime/manga activities.
+// @description Simple userscript/extension for AniList that allows users to filter anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
 // ==/UserScript==
 
@@ -335,8 +336,7 @@ let activityDiv = create("div", {class: "activityDiv",style: {display:"block"}})
 function start() {
   if (!/^\/(home|user)\/?([\w-]+)?\/?$/.test(location.pathname)) {return}
   let filters = document.querySelectorAll(".el-dropdown-menu");
-  if (!filters) {setTimeout(start, 500);return}
-  setTimeout(start, 1000);
+  if (!filters) {setTimeout(start, 100);return}
   for (var x = 0; x < filters.length; x++) {
     if (filters[x].children[0].innerText.trim() === "All") {
       filters[x].appendChild(button);}}
@@ -711,10 +711,10 @@ function animedataclick() {
         el.addEventListener('click', function(e) {
             listprogress();
             refresh();
-            delay(1000).then(() => replacedivloop(el));
             set(stopDiv, {style: {display: "flex"}});
             set(button4, {style: {visibility: "visible"}})
-              set(buttonsDiv, {style: {pointerEvents: "none"}})
+            set(buttonsDiv, {style: {pointerEvents: "none"}})
+            delay(1000).then(() => replacedivloop(el));
         });
     });
     function each(el, callback) {
@@ -760,16 +760,26 @@ function blacklistclick() {
 
 window.addEventListener('load', function() {
   active = false;
+  let current = location.pathname;
   start();
     var bodyList = document.querySelector("body")
     var observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
-            if (oldHref != document.location.href) {
-                oldHref = document.location.href;
-                active = false;
-                start();
-                set(button, {class:"el-dropdown-menu__item"});
-            }});
+          if (/^\/(home|user)\/?([\w-]+)?\/?$/.test(current)) {
+             start();
+             active = false;
+             set(button, {class:"el-dropdown-menu__item"});
+             current = "";
+           }
+          if (oldHref != document.location.href) {
+              oldHref = document.location.href;
+              current = location.pathname;
+            if (/^\/(home|user)\/?([\w-]+)?\/?$/.test(current)) {
+              active = false;
+              start();
+              set(button, {class:"el-dropdown-menu__item"});
+              current = "";
+            }}});
     });
     var config = {
         childList: true,
