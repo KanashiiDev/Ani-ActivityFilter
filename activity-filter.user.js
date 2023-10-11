@@ -3,7 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.1.1
+// @version     1.1.11
 // @license     GPL-3.0-or-later
 // @author      KanashiiDev
 // @description Simple userscript/extension for AniList that allows users to filter anime/manga activities.
@@ -338,9 +338,9 @@ function start() {
   if (!/^\/(home|user)\/?([\w-]+)?\/?$/.test(location.pathname)) {return}
   let filters = document.querySelector(".el-dropdown-menu:not(.details *):not(.time *)");
   if (!filters) {setTimeout(start, 100);return}
-  for (var x = 0; x < filters.length; x++) {
-    if (filters[x].children[0].innerText.trim() === "All") {
-      filters[x].appendChild(button);break;}}
+    if (filters.children[0].innerText.trim() === "All") {
+      console.log("yes");
+      filters.appendChild(button);}
 }
 
 function createDiv() {
@@ -758,6 +758,7 @@ function blacklistclick() {
         });
     };
 }
+
 if (document.readyState === "complete") {loadStart();} else {window.addEventListener('load', loadStart);}
 function loadStart () {
   active = false;
