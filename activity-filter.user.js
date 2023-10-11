@@ -336,7 +336,7 @@ let activityDiv = create("div", {class: "activityDiv",style: {display:"block"}})
 
 function start() {
   if (!/^\/(home|user)\/?([\w-]+)?\/?$/.test(location.pathname)) {return}
-  let filters = document.querySelectorAll(".el-dropdown-menu");
+  let filters = document.querySelector(".el-dropdown-menu:not(.details *):not(.time *)");
   if (!filters) {setTimeout(start, 100);return}
   for (var x = 0; x < filters.length; x++) {
     if (filters[x].children[0].innerText.trim() === "All") {
