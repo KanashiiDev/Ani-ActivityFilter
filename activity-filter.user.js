@@ -3,7 +3,7 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.1.11
+// @version     1.1.12
 // @license     GPL-3.0-or-later
 // @author      KanashiiDev
 // @description Simple userscript/extension for AniList that allows users to filter anime/manga activities.
@@ -333,13 +333,12 @@ let button12=create("button",{class:"mainbtns",id:"blacklistbtn",style: {positio
 let searchinput=create("input",{class:"searchinput",id:"searchinput"});searchinput.onkeyup=()=>{search()};searchinput.placeholder = "Search";
 let blacklistDiv = create("div", {class: "blacklistDiv",style: {display:"none"}});
 let activityDiv = create("div", {class: "activityDiv",style: {display:"block"}});
-
+start();
 function start() {
   if (!/^\/(home|user)\/?([\w-]+)?\/?$/.test(location.pathname)) {return}
-  let filters = document.querySelector(".el-dropdown-menu:not(.details *):not(.time *)");
+  let filters = document.querySelector(".el-dropdown-menu:not(.details *):not(.time *):not(.actions *)");
   if (!filters) {setTimeout(start, 100);return}
     if (filters.children[0].innerText.trim() === "All") {
-      console.log("yes");
       filters.appendChild(button);}
 }
 
@@ -759,37 +758,20 @@ function blacklistclick() {
     };
 }
 
-if (document.readyState === "complete") {loadStart();} else {window.addEventListener('load', loadStart);}
-function loadStart () {
-  active = false;
-  let current = location.pathname;
-  start();
-    var bodyList = document.querySelector("body")
-    var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if (/^\/(home|user)\/?([\w-]+)?\/?$/.test(current)) {
-             start();
-             active = false;
-             set(button, {class:"el-dropdown-menu__item"});
-             current = "";
-           }
-          if (oldHref != document.location.href) {
-              oldHref = document.location.href;
-              current = location.pathname;
-            if (/^\/(home|user)\/?([\w-]+)?\/?$/.test(current)) {
-              active = false;
-              start();
-              set(button, {class:"el-dropdown-menu__item"});
-              current = "";
-            }}});
-    });
-    var config = {
-        childList: true,
-        subtree: true
-    };
-    observer.observe(bodyList, config);
-};
-
-window.onclick = function() {
-    if (active && ResultDiv && ResultDiv.innerText == 'Results\n') set(ResultDiv, {style: {display: "none"}});
-}
+var target = document.querySelector('body');
+var observer = new MutationObserver(function(mutationsList, observer) {
+    for(var mutation of mutationsList) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+         if (oldHref != document.location.href) {
+            oldHref = document.location.href;
+            active = false;
+            start();
+            set(button, {
+               class: "el-dropdown-menu__item"
+            });
+         }
+        }
+    }
+});
+observer.observe(target, { childList: true, subtree: true });
+window.onclick = function() {if (active && ResultDiv && ResultDiv.innerText == 'Results\n') set(ResultDiv, {style: {display: "none"}});}
