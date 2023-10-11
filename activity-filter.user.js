@@ -3,11 +3,12 @@
 // @namespace   https://github.com/KanashiiDev
 // @match       https://anilist.co/*
 // @require     https://code.jquery.com/jquery-3.3.1.min.js
-// @version     1.1.0
+// @version     1.1.1
 // @license     GPL-3.0-or-later
 // @author      KanashiiDev
 // @description Simple userscript/extension for AniList that allows users to filter anime/manga activities.
 // @supportURL  https://github.com/KanashiiDev/Ani-ActivityFilter/issues
+// @run-at      document-end
 // ==/UserScript==
 
 //CSS
@@ -339,7 +340,7 @@ function start() {
   if (!filters) {setTimeout(start, 100);return}
   for (var x = 0; x < filters.length; x++) {
     if (filters[x].children[0].innerText.trim() === "All") {
-      filters[x].appendChild(button);}}
+      filters[x].appendChild(button);break;}}
 }
 
 function createDiv() {
@@ -757,8 +758,8 @@ function blacklistclick() {
         });
     };
 }
-
-window.addEventListener('load', function() {
+if (document.readyState === "complete") {loadStart();} else {window.addEventListener('load', loadStart);}
+function loadStart () {
   active = false;
   let current = location.pathname;
   start();
@@ -786,7 +787,7 @@ window.addEventListener('load', function() {
         subtree: true
     };
     observer.observe(bodyList, config);
-});
+};
 
 window.onclick = function() {
     if (active && ResultDiv && ResultDiv.innerText == 'Results\n') set(ResultDiv, {style: {display: "none"}});
